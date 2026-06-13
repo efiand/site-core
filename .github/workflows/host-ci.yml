@@ -1,0 +1,88 @@
+name: Host CI
+
+on:
+  workflow_call:
+    inputs:
+      test_command:
+        description: npm-скрипт для build & test
+        required: false
+        type: string
+        default: npm test
+      node_version:
+        description: Версия Node.js
+        required: false
+        type: string
+        default: '24'
+      artifact_name:
+        description: Имя artifact для deploy-job
+        required: false
+        type: string
+        default: deploy-bundle
+      artifact_paths:
+        description: Пути для upload-artifact (по одному на строку)
+        required: false
+        type: string
+        default: |
+          app/__/
+          public/
+          tools/prod/
+      upload_artifact:
+        description: Загружать artifact после test (для deploy-static-releases)
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      AUTH_HASH:
+        required: false
+      AUTH_LOGIN:
+        required: false
+      AUTH_PASSWORD:
+        required: false
+      AUTH_SECRET:
+        required: false
+      DB_HOST:
+        required: false
+      DB_NAME:
+        required: false
+      DB_PASSWORD:
+        required: false
+      DB_USER:
+        required: false
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build & Test
+        run: ${{ inputs.test_command }}
+        env:
+          AUTH_HASH: ${{ secrets.AUTH_HASH }}
+          AUTH_LOGIN: ${{ secrets.AUTH_LOGIN }}
+          AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_USER: ${{ secrets.DB_USER }}
+
+      - name: Upload deploy artifact
+        if: ${{ inputs.upload_artifact }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ inputs.artifact_paths }}
+          if-no-files-found: error

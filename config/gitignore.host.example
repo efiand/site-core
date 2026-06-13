@@ -1,0 +1,21 @@
+# Эталон общего блока .gitignore для хостов site-core.
+# Git не поддерживает import — синхронизируйте вручную с .gitignore хоста.
+# Host-only строки — в конце файла хоста, тоже по алфавиту.
+# Symlink/junction из postinstall (.editorconfig, .vscode/*, .cursor/rules/site-core) — в gitignore.
+
+*cache*
+*tmp*
+.DS_Store
+.cursor/rules/site-core
+.editorconfig
+.env
+.vscode/*
+Thumbs.db
+app/__
+bundles
+logs
+node_modules
+public/**/*.html
+public/*.xml
+src/client/css/common/fonts.css
+tmp

@@ -1,0 +1,57 @@
+# Шаблон ci.yml хоста — после публикации site-core (шаг 3 миграции).
+# Заменить <org> и X.Y.Z на фактический репозиторий и тег site-core.
+# До шага 3 оставить локальный self-contained ci.yml в хосте.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    if: ${{ ! contains(github.event.head_commit.message, '[skip') }}
+    uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z
+    with:
+      test_command: npm test
+      artifact_paths: |
+        app/__/
+        public/
+        tools/prod/
+    secrets: inherit
+
+  deploy:
+    needs: ci
+    if: ${{ contains(github.event.head_commit.message, '[deploy]') }}
+    uses: <org>/site-core/.github/workflows/deploy-static-releases.yml@X.Y.Z
+    with:
+      scp_source: app/__/*,public/*,tools/prod/*
+    secrets: inherit
+
+# GitHub Pages (well.efiand.ru и т.п.):
+#
+# jobs:
+#   ci:
+#     uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z
+#     with:
+#       artifact_paths: public/
+#       upload_artifact: false
+#
+#   deploy:
+#     needs: ci
+#     if: ${{ contains(github.event.head_commit.message, '[deploy]') }}
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v6
+#       - uses: actions/setup-node@v6
+#         with:
+#           node-version: '24'
+#       - run: npm ci
+#       - run: npm test
+#       - uses: peaceiris/actions-gh-pages@v4.1.0
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./public
+#
+# Роут /404.html в routes/index.js — build → public/404.html

@@ -1,0 +1,193 @@
+---
+description: Именование, порядок, комментарии и стиль JavaScript
+alwaysApply: true
+---
+
+# Именование
+
+- Булевы переменные и свойства — с префиксом `is*` (`isDev`, `isApi`).
+- Обработчики событий — `on*` (`onMessage`), не `*Handler`.
+- Экспортируемые функции — с **глаголом** (`buildAssetQuery`, `prepareText`, `getEmailLink`, `minifyHtml`); исключения: предикаты `is*`, обработчики `on*`, фабрики `create*`, шаблоны `render*`.
+- Кнопки: `button`, не `btn`; ссылки на DOM — с суффиксом `Element` (`buttonElement`, `svgElement`).
+- Функции создания DOM: `createSvgElement`, не `createSvg`; файл — `create-svg-element.js`.
+- Шаблонные функции рендеринга — `render*`; HTML-константы — `*_TEMPLATE`.
+- Однобуквенные имена переменных и параметров не используй; исключение — счётчики `i`, `j`, `k` при итерировании.
+- Намеренно неиспользуемые привязки — имя с префиксом `_` (`_removedEntry`), не голый `_`.
+- **Юникод:** типографские символы (`«»`, неразрывный пробел, тире) — **литералами** в исходнике везде: JS, CSS, HTML-шаблоны. Не HTML-entities (`&nbsp;`, `&laquo;`) и не `\uXXXX`-escape.
+
+# Константы модуля (`export const`)
+
+- **UPPER_SNAKE_CASE** — скалярные литералы и неизменяемые таблицы.
+- **camelCase** — реестры (`version` → `version.CSS`), объекты-сервисы (`log`).
+
+# Кеш-бастинг (хосты)
+
+Реестр `version` в `app/common/constants.js` хоста + `buildAssetQuery()` из [`common/lib/asset-version.js`](common/lib/asset-version.js) → `?v=N&core=X.Y.Z`.
+
+- Если в текущих правках (`git diff HEAD`) изменились связанные файлы — увеличь соответствующее свойство `version` на 1.
+- Связи по умолчанию: `version.CSS` → `src/client/css/**`, `postcss.config.js`; `version.JS` → `src/client/**/*.js`.
+- Новый ключ `version.*` — вместе с использованием в шаблоне и явной привязкой к файлам в этом списке (дополнения — в rules хоста при нестандартных путях).
+- Не инкрементируй, если связанные файлы не менялись; не дублируй инкремент в тех же правках.
+
+# Порядок в модуле
+
+- **Импорты** — в начале (Biome `organizeImports`); именованные specifiers в `import { … }` — по алфавиту (`identifierOrder: lexicographic`).
+- **Константы** — после импортов, по алфавиту.
+- **Функции** — по алфавиту; без `export` у объявления.
+- **Экспорт** — один блок `export { … }` **в конце файла** (Biome `useExportsLast`); имена в блоке — **по алфавиту** (Biome `organizeImports`, `identifierOrder: lexicographic`). Inline `export function` / `export const` / `export default` **запрещены** (`noDefaultExport`); default export не используем.
+- **Top-level исполняемый код** — после функций, до `export { … }`; в `tools/` — в конце файла перед экспортом.
+- **Свойства в деструктуризации** параметров — по алфавиту (включая порядок полей в `@type`-сигнатуре функции).
+
+# Комментарии
+
+- JSDoc у экспортируемых функций — когда добавляет описание, именованный тип (`LayoutData`, `RouteMethod`) или неочевидный возврат.
+- Не дублируй типы, видимые из дефолтов и сигнатуры (пример: `renderInnerPage({ heading = '', pathname = '', template = '' } = {})`).
+- Типизацию функций — одним `@type` с сигнатурой `(params) => Return`, не отдельными `@param` / `@returns`; строка `@type` не длиннее `lineWidth` из [`config/biome.core.json`](config/biome.core.json) (120). Не влезает — именованный тип в [`types/`](types/) (тематический `.d.ts`) и короткий `@type {(…) => TypeName}`; крайний случай — `@param` / `@returns`.
+- `@type` оставляй, когда без него тип не выводится: `.d.ts`-тип, `typeof` от константы, union сложнее дефолтов.
+- Между текстовым описанием и тегами JSDoc — пустая строка (` *` на отдельной строке).
+- Внутри функций — обычные комментарии там, где JSDoc не сработает.
+
+# JavaScript и DOM
+
+- Объявляй функции через `function`; стрелочные — для колбэков.
+- IE не поддерживаем: современные API без fallback'ов.
+- Предпочитай `const`, `.append()` / `.prepend()` вместо `appendChild`, `className` для новых HTML-элементов; у `SVGSVGElement` — `classList`.
+- Деструктуризация где уместно (`useDestructuring`).
+- Строки собирай шаблонными литералами, не оператором `+`. Biome (`useTemplate`, `noUselessStringConcat`) ловит склейку с литералом (`'a' + name`), но **не** чисто идентификаторы (`RULES_TEMPLATE + TABLE_TEMPLATE`) — такие случаи только по конвенции.
+- Не вызывай `.toString()` там, где значение и так станет строкой.
+- Повторный доступ к значению или узлу (2+) — локальная константа (DOM — с суффиксом `Element`).
+- Не заводи алиас без добавленной ценности: `const pages = STATIC_PAGES` — используй импорт напрямую.
+- В пользовательском тексте — Unicode (`☹`, `→`, `…`), не ASCII-замены.
+
+# Шаблонные литералы разметки
+
+- Перед литералом с HTML, XML или SQL — `/* html */`, `/* xml */` или `/* sql */`.
+- Многострочная разметка — отступы по вложенности тегов (табами).
+- Однострочный литерал без переносов — отбивка не обязательна; комментарий `/* html */` / `/* xml */` / `/* sql */` всё равно нужен, если внутри разметка.
+- XML: объявление `<?xml …?>` — сразу после открывающей `` ` ``, без отступа в начале строки; дальше — обычные отступы.
+
+# CSS (BEM)
+
+- Блоки хоста — `src/client/css/blocks/{block}.css`; общие слои — `common/` (`global.css`, `helpers.css`, `keyframes.css`, `fonts.css`).
+- В `blocks/{block}.css` — **только классы своего блока**: `.block`, `.block__element`, `.block--modifier`.
+- **Запрещено** стилизовать один BEM-блок через класс другого: селекторы вида `.other-block .my-block__element`, `.inner-page__nav .nav__button`, `.promo .nav__button` — нельзя, даже если оба блока на одном узле.
+- **Запрещено** писать элементы и модификаторы чужого блока в «чужом» файле: `.nav__button` — только в `nav.css`, `.inner-page__footer` — только в `inner-page.css`, `.inner-page__nav` — только в `inner-page.css`.
+- Несколько блоков на одном узле (`class="nav inner-page__nav promo__nav"`) — каждый блок правится **только в своём файле**. Контекст родителя — через элементы **родительского** блока (`.inner-page`, `.inner-page__nav`), не через вложенные селекторы по чужим `__element`.
+- Переиспользуемые блоки (`button`, `content`, …) — отдельный файл; оболочка задаёт только свои `__element`, внешний вид общего блока — в его файле (`.button` в `button.css`, не `.nav .button` в `nav.css`).
+- Исключение: голые теги и псевдоклассы внутри **своего** элемента (`.promo__addition a`, `.tariffs__note:empty`) — допустимы.
+- Разметку проверяет `posthtml-bem-linter` в интеграционных тестах хоста; правила файлов и селекторов — вручную при review.
+
+# Архитектура site-core
+
+- `common/` — код без Node-only зависимостей + SSR-шаблоны.
+- `server/` — серверная логика, npm runtime (mysql, typograf, …).
+- `client/` — browser JS и CSS blocks.
+- `types/` — JSDoc `.d.ts`.
+- Импорты **внутри site-core**: `#core/common/*`, `#core/server/*`, `#core/client/*`, `#core/test-helpers/*`.
+- Хосты импортируют те же `#core/…` specifiers через `package.json` `imports`.
+
+# Архитектура SSR (хосты)
+
+- `app/common/` — константы, утилиты без Node-only deps, HTML-шаблоны (`templates/`).
+- `app/server/` — маршруты (`routes/`), серверная логика (`lib/`). Node/npm-only утилиты — в `app/server/lib/`, не в `app/common/lib/`.
+- `src/client/` — CSS (PostCSS, BEM в `css/blocks/`), клиентские entry (`entries/*.js`).
+- Импорты хоста: `#common/*`, `#server/*`, `#client/*`; shared — `#core/*` (см. `package.json` → `imports`).
+- Роуты — объекты с HTTP-методами; хендлер возвращает `{ page }` или `{ template, statusCode?, contentType? }`.
+- Дефолты ответа — middleware в [`route-dispatcher.js`](server/lib/route-dispatcher.js) (`createStandardRouteDispatcher`): `statusCode` 200, `contentType` `text/html; charset=utf-8`. Указывай только отличия.
+- `{ page }` — HTML-страница: middleware вызывает `renderPage` и подставляет дефолтный `contentType` / `statusCode`.
+- **Страница:** [`createRenderPage`](common/templates/page.js) в core — `<html>`, `<head>`, assets, OG; [`renderFaviconLinks`](common/templates/favicon-links.js); [`renderFontPreloads`](common/templates/font-preloads.js); `<body>` + [`renderYandexMetrika`](common/templates/yandex-metrika.js) + **`renderLayout` хоста**. Хост: `app/server/lib/app.js` — `createRenderPage({ renderLayout, … })`, `createApp`, export `renderPage`. `faviconPrefix` — в `createRenderPage` (дефолт) или в `renderPage({ faviconPrefix, … })`.
+- **`renderLayout` хоста** — только разметка **внутри** `<body>` (обёртка `.layout`, nav и т.п.); **не** рендерит `<body>`, `<html>`, Metrika.
+- **Favicon / PWA** (`public/`, одинаково во всех хостах): `favicon-96x96.png`, `favicon.svg`, `apple-touch-icon.png` (180×180), `site.webmanifest`. Пути — [`renderFaviconLinks`](common/templates/favicon-links.js); префикс в `createRenderPage({ faviconPrefix })` (по умолчанию `''`; для manuscript-зеркала raskatov — `/manuscript`).
+- **Шрифты:** исходники — `public/fonts/*.woff2` (в git хоста). [`site-core-postinstall`](tools/postinstall.js) сканирует каталог, переименовывает в `{family-slug}-{weight}[-italic].woff2`, генерирует gitignored `src/client/css/common/fonts.css` (`@font-face`) и `common/generated/fonts.js` (`export const fonts`) в **site-core**; [`page.js`](common/templates/page.js) импортирует массив → [`renderFontPreloads`](common/templates/font-preloads.js). После добавления/замены файлов — `npm run postinstall` или `npm run build`. Override — `createRenderPage({ fonts: […] })` (тесты).
+- CSS — BEM в `css/blocks/`; один файл на блок, без кросс-блочных селекторов — см. раздел «CSS (BEM)»; классы в разметке — `posthtml-bem-linter` в тестах хоста.
+- Статика: `npm run build` (PostCSS → `public/bundles`, HTML → `tools/build-static-pages.js`).
+- Dev: `npm run dev` (`site-core-dev` — dotenvx, nodemon и dev-server из site-core; `createApp` хоста подгружается динамически из `app/server/lib/app.js`).
+- **Metrika:** SSR `<noscript>` — в `<body>` через [`createRenderPage`](common/templates/page.js); client — `src/client/entries/main.js` (`configure-site` + [`initYandexMetrika`](client/lib/init-yandex-metrika.js)) → bundle `public/bundles/main.js`; script-тег — [`renderPageAssets`](common/templates/page-assets.js) → [`renderYandexMetrikaScript`](common/templates/yandex-metrika-script.js). Внешние скрипты — [`loadScript`](client/lib/load-script.js).
+- **`configure-site.js`:** side-effect init — в хосте: `app/server/lib/app.js` (`configure-site`, `setSiteConfig({ routes })`); client — `src/client/entries/main.js`. `port`/`host`/`routes` — [`getSiteConfig()`](common/lib/site-config.js); порт только из `DEV_PORT` (dev) или `PORT` (preview/prod/systemd).
+- **HTTP-сервер:** [`createHttpServer`](server/lib/http-server.js) — `port?`, `renderPage`, `renderErrorPage`, `middleware?`; внутри — [`createStandardRouteDispatcher`](server/lib/route-dispatcher.js) из `getSiteConfig().host` и `.routes`. [`closeApp`](server/lib/http-server.js), `getAppHost`, `waitForApp`; хостовый `app.js` — только `createApp`.
+
+# Линтинг и типы
+
+- Единый Biome-пресет: [`config/biome.core.json`](config/biome.core.json) — и site-core, и хосты (`extends` только его). Хост: `biome.json` → `"extends": ["./node_modules/site-core/config/biome.core.json"]`.
+- Пиши код по этому пресету; при конфликте соглашений — **сначала Biome**, затем правила проекта.
+- Biome дополнительно к `preset: recommended`: `useArrowFunction: off` (объявления через `function`), `useFilenamingConvention` (kebab-case), `useNodejsImportProtocol`, `useImportType`, `useTemplate`, `noUselessStringConcat`, `useExponentiationOperator` (`**`), `useDestructuring`, `noVar`, `useConst`, `useBlockStatements`, `noConsole`, `useExportsLast`, `noDefaultExport`, `noUnusedImports`, `noUnusedVariables` и др. — см. [`biome.core.json`](config/biome.core.json).
+- Именование (`is*`, `on*`, `*Element`, `render*`, UPPER_SNAKE vs camelCase у `export const`, запрет `btn`, `*Handler`, однобуквенных имён вне `i`/`j`/`k`, `_` для discard) Biome **не** покрывает — следи вручную по разделу «Именование».
+- **Assist** (`biome check --write`, `npm run lint-format`): `organizeImports` — алфавит specifiers в `import { … }`; `useSortedKeys` — алфавит ключей в объектных литералах и **JSON-конфигах** (`tsconfig.json`, `package.json`, `biome.json` и т.п.). После правок — прогоняй `lint-format`, иначе pre-commit/CI поймает расхождение (например, порядок ключей в `tsconfig.json`).
+- Логирование — через [`log`](common/lib/log.js), не `console.*` (кроме тестов, реализации `log`, CLI в `tools/*`; [`tools/upgrade-github-actions.js`](tools/upgrade-github-actions.js) — `console.info` при обновлении actions).
+
+## Скрипты
+
+| | **site-core** | **хост** |
+|--|---------------|----------|
+| type-check | `npm run type-check` (`tsc`) | `npm run type-check` → `site-core-type-check` |
+| lint | `npm run lint` | `npm run lint` → `site-core-lint` |
+| lint-format | `npm run lint-format` | `npm run lint-format` → `site-core-lint --write` |
+
+Оба `lint*` = `type-check` + `biome check` (у `lint-format` — с `--write`).
+
+## Workflow
+
+- **После правок файлов** — `npm run lint-format` в затронутом репозитории (site-core или хост).
+- **Перед завершением задачи** — `npm run lint` без ошибок.
+- CI и pre-commit — `npm run lint` / `npm run lint-format` + `npm test` (см. [`workflow-core.mdc`](workflow-core.mdc)).
+
+## Pre-commit
+
+- **site-core:** `"pre-commit": ["lint-format", "test"]` — hook ставит `@fastify/pre-commit` при `npm install` (штатный `install.js`).
+- **Хост:** то же поле + скрипты `lint-format` / `test`; hook — [`tools/install-pre-commit.js`](../tools/install-pre-commit.js) через `site-core-postinstall` (workaround для nested-пакета и `file:`-link). Отдельный `@fastify/pre-commit` в devDependencies **не нужен**. Эталон — [`config/package.host.example.json`](../config/package.host.example.json).
+
+## TypeScript
+
+- [`types/index.d.ts`](types/index.d.ts) — **entrypoint** типов: только `/// <reference path="…" />` на доменные `.d.ts`, **по алфавиту path**; в global-файлах без `export {}` и `import type`.
+- Хост в `tsconfig.json`: `extends` — [`config/tsconfig.base.json`](config/tsconfig.base.json) + [`config/tsconfig.host.json`](config/tsconfig.host.json); `include` — [README](../README.md); **не дублируй** `exclude` из `tsconfig.host.json`.
+
+## Расширение типов хостом
+
+Базовые SSR/роутинг-типы в core — **`interface`**, не `type` (`LayoutData`, `RouteParams`), без полей, специфичных для одного хоста.
+
+Хост добавляет `src/types/view.d.ts` (и при необходимости `server.d.ts`); объявления в `src/types/` — **по алфавиту**, свойства объектных типов — по алфавиту (аналог `useSortedKeys`):
+
+```typescript
+declare global {
+	interface LayoutData {
+		isManuscript?: boolean;
+	}
+}
+export {};
+```
+
+TypeScript смержит декларации с core. То же для `RouteParams`, `CreateAppOptions` и т.п. — только дополнительные поля, без копирования базы.
+
+## Конфигурация хоста
+
+**`get*` / `set*`:** `get*` — только чтение, без побочных эффектов; `set*` — только запись, `void` (после патча — отдельный `get*`).
+
+[`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) — `baseHost` (хост задаёт в `configure-site.js`; `baseUrl` = `https://${baseHost}` вычисляется в сеттере), `email`, `hasDb`, `isDev`, `projectDescription`, `projectTitle`, `version`, `yandexMetrikaId`, `publicPages` (`Set`), `staticPages` / `buildPages` (`Set`, вычисляются); init — `app/common/configure-site.js`
+
+`og:site_name` в [`createRenderPage`](common/templates/page.js) — `baseHost`, иначе `projectTitle`.
+
+`isDev` / `port` / `host`: синхронизируются в [`setSiteConfig`](common/lib/site-config.js) (runtime-поля — только на сервере); после `listen` — в [`createHttpServer`](server/lib/http-server.js). Читаются через [`getSiteConfig()`](common/lib/site-config.js). `isDev`: `process.env.DEV` / `window.DEV`; порт: `DEV_PORT` (dev), `PORT` (preview/prod). В `SiteConfigPatch` нет `isDev`, `port`, `host`, `baseUrl`.
+
+`hasDb`: default `false`. Хост с MySQL (aromachef) — `hasDb: true` в `configure-site.js`; модули [`db.js`](server/lib/db.js) и teardown в тестах опираются на этот флаг.
+
+`SERVICE_PAGES` в [`site-config.js`](common/lib/site-config.js): `/__/404`, `/__/update`, `/404.html`. **`staticPages`** = `publicPages` + пересечение ключей `routes` с `SERVICE_PAGES`. Источник правды — **роуты хоста**: nginx-хост регистрирует `/__/404` и `/__/update`; GitHub Pages — `/404.html` (build → `public/404.html`); без служебного роута страница не попадает в build.
+
+`setSiteConfig`: скаляры — merge через `Object.assign`; `routes` — **замена** `publicPages` из ключей (без `/__/…`, `/sitemap.xml`, путей с `.`); `publicPages` — **доливка** в `Set` (без дублей); `staticPages` — копия `publicPages` + service pages из `routes`; `buildPages` — копия `staticPages` + `/sitemap.xml`.
+
+Хост: side-effect `app/common/configure-site.js` — скаляры; `app/server/lib/app.js` — `setSiteConfig({ routes })`. Порт: `DEV_PORT` в dev (`site-core-dev`), `PORT` в preview (`site-core-dev --preview`) и prod/systemd; `host` = `http://localhost:{port}`. `createHttpServer({ renderPage, renderErrorPage, port?, middleware? })` — dispatch из конфига.
+
+[`renderDocumentTitle`](common/templates/document-title.js) — `parts.filter(Boolean)` + `projectTitle` из `getSiteConfig()`, разделитель ` | `; пустой `parts` → только project title.
+
+## Colocated `.d.ts` (subpath-импорты)
+
+Для **каждого export-модуля** в `common/`, `server/`, `client/`, `test-helpers/`, который хост импортирует как `#core/…` или `site-core/…`, — **`.d.ts` рядом с `.js`** (не в `types/`). Global-типы (`LogLevel`, `RouteParams`, …) — в `types/` + `/// <reference />` в colocated-файле.
+
+| Элемент | Правило |
+|---------|---------|
+| Именование | то же имя, что у `.js`: `yandex-metrika.js` → `yandex-metrika.d.ts` |
+| Global-типы | `/// <reference path="…/types/index.d.ts" />` в начале, если нужны типы из `types/` |
+| Функции | `declare function fn(params): Return;` |
+| Константы | `declare const NAME: Type;` |
+| Экспорт | `export { … }` в конце — как в colocated `.js`; имена **по алфавиту**; без inline `export function` / `export declare const` |
+| Global-типы в `types/` | без `export` — только `/// <reference />`; см. [`types/index.d.ts`](types/index.d.ts) |
+| Примеры | [`tools/build-static-pages.d.ts`](tools/build-static-pages.d.ts), [`common/templates/yandex-metrika.d.ts`](common/templates/yandex-metrika.d.ts), [`common/templates/mailto-privacy.d.ts`](common/templates/mailto-privacy.d.ts) |

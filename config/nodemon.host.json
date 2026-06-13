@@ -1,0 +1,4 @@
+{
+	"ext": "css,js,svg",
+	"watch": ["app", "src"]
+}

@@ -1,0 +1,37 @@
+interface LayoutData {
+	description?: string;
+	faviconPrefix?: string;
+	headTemplate?: string;
+	heading?: string;
+	isDev?: boolean;
+	ogImage?: string;
+	ogImageHeight?: string | number;
+	ogImageWidth?: string | number;
+	pageTemplate?: string;
+	pathname?: string;
+	title?: string;
+}
+
+type PageAssetsOptions = {
+	cssEntry?: string;
+	devCssPath?: string;
+	importMap?: { imports: Record<string, string> };
+	pathname?: string;
+};
+
+type CreateRenderPageOptions = {
+	defaultOgImage?: string;
+	defaultOgImageHeight?: number;
+	defaultOgImageWidth?: number;
+	faviconPrefix?: string;
+	fonts?: Iterable<string>;
+	headExtras?: string;
+	htmlLang?: string;
+	htmlPrefix?: string;
+	/** Контент страницы внутри `<body>`; **без** `<body>`, Metrika и `<html>`. */
+	renderLayout: (data: LayoutData) => string;
+};
+
+type FaviconLinksOptions = {
+	faviconPrefix?: string;
+};

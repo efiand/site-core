@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"lib": ["DOM", "ES2022"],
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"noEmit": true,
+		"noImplicitAny": true,
+		"paths": {
+			"#core/client/*": ["./client/*"],
+			"#core/common/*": ["./common/*"],
+			"#core/server/*": ["./server/*"],
+			"#core/test-helpers/*": ["./test-helpers/*"]
+		},
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "es2022"
+	},
+	"exclude": ["node_modules"]
+}

@@ -1,0 +1,12 @@
+{
+	"exclude": [
+		"../site-core",
+		"node_modules/site-core/client",
+		"node_modules/site-core/common",
+		"node_modules/site-core/config",
+		"node_modules/site-core/server",
+		"node_modules/site-core/test-helpers",
+		"node_modules/site-core/tools",
+		"public"
+	]
+}

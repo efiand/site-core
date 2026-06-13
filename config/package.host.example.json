@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+		"site-core": "file:../site-core"
+	},
+	"pre-commit": ["lint-format", "test"],
+	"scripts": {
+		"lint-format": "site-core-lint --write",
+		"postinstall": "site-core-postinstall",
+		"test": "npm run build && site-core-run node --import site-core/tools/register-vendors.js --test --test-isolation=process \"test/**/*.spec.js\""
+	}
+}

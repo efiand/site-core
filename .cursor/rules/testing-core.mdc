@@ -1,0 +1,15 @@
+---
+description: Организация и написание тестов site-core
+alwaysApply: true
+---
+
+# Тестирование site-core
+
+- Runner: `node --test --test-isolation=process "test/**/*.spec.js"`; перед CI — `npm run lint`.
+- Spec-файлы зеркалят слои пакета: `test/lib/` → `common/lib/`, `test/server/` → `server/lib/`, `test/test-helpers/` → `test-helpers/`.
+- Unit-тесты shared-кода — **только в `site-core/test/`**. Integration-тесты хостов остаются в репозиториях хостов.
+- Импорты в тестах — через `#core/common/*`, `#core/server/*`, `#core/test-helpers/*`.
+- **`describe` / `test`** — на **русском**. Suite зеркалит путь spec: `test/routes/main.spec.js` → `describe('Маршруты/Главная')`, `test/server/page.spec.js` → `describe('Сервер/Страница')`, `test/integration/` → `describe('Интеграция')`. Технические термины и пути — как есть (`sitemap.xml`, BEM, SEO, `title`).
+- Хелпер [`test-helpers/route-params.js`](test-helpers/route-params.js) — параметры для вызова роут-хендлеров (в хостах и core).
+- [`test-helpers/dom-fixture.js`](test-helpers/dom-fixture.js) — generic `setupDomFixture` / `teardownDomFixture` на `happy-dom`; project-specific wrapper — в хосте.
+- [`test-helpers/db-teardown.js`](test-helpers/db-teardown.js) — `useDbTeardown()` для spec с MySQL.

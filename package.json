@@ -1,0 +1,79 @@
+{
+	"bin": {
+		"site-core-build-static-pages": "./tools/build-static-pages-cli.js",
+		"site-core-build-vendors": "./tools/build-vendors.js",
+		"site-core-dev": "./tools/dev.js",
+		"site-core-dump": "./tools/dump.js",
+		"site-core-lint": "./tools/lint.js",
+		"site-core-postinstall": "./tools/postinstall.js",
+		"site-core-run": "./tools/run-bin.js",
+		"site-core-type-check": "./tools/type-check.js",
+		"site-core-upgrade": "./tools/upgrade.js"
+	},
+	"dependencies": {
+		"@biomejs/biome": "2.5.0",
+		"@dotenvx/dotenvx": "1.71.3",
+		"@fastify/pre-commit": "2.2.1",
+		"@types/formidable": "3.5.1",
+		"@types/html-minifier-terser": "7.0.2",
+		"@types/jsdom": "28.0.3",
+		"@types/jsonwebtoken": "9.0.10",
+		"@types/node": "25.9.3",
+		"@types/postcss-import": "14.0.3",
+		"@types/postcss-url": "10.0.4",
+		"bcrypt-ts": "8.0.1",
+		"cssnano": "8.0.2",
+		"dompurify": "3.4.10",
+		"fast-xml-validator": "1.1.1",
+		"formidable": "3.5.4",
+		"happy-dom": "20.10.3",
+		"html-minifier-terser": "7.2.0",
+		"html-validate": "11.5.3",
+		"hyphen": "1.14.1",
+		"jsdom": "29.1.1",
+		"jsonwebtoken": "9.0.3",
+		"mysql2": "3.22.5",
+		"nodemon": "3.1.14",
+		"postcss": "8.5.15",
+		"postcss-cli": "11.0.1",
+		"postcss-import": "16.1.1",
+		"postcss-sort-media-queries": "6.6.2",
+		"postcss-url": "10.1.4",
+		"posthtml-bem-linter": "0.1.8",
+		"rolldown": "1.1.1",
+		"sharp": "0.35.1",
+		"tinymce": "8.6.0",
+		"typescript": "6.0.3",
+		"typograf": "7.7.0"
+	},
+	"exports": {
+		"./client/*": "./client/*",
+		"./common/*": "./common/*",
+		"./config/*": "./config/*",
+		"./server/*": "./server/*",
+		"./test-helpers/*": "./test-helpers/*",
+		"./tools/*": "./tools/*",
+		"./types/*": "./types/*"
+	},
+	"imports": {
+		"#core/client/*": "./client/*",
+		"#core/common/*": "./common/*",
+		"#core/server/*": "./server/*",
+		"#core/test-helpers/*": "./test-helpers/*"
+	},
+	"name": "site-core",
+	"pre-commit": [
+		"lint-format",
+		"test"
+	],
+	"private": true,
+	"scripts": {
+		"lint": "npm run type-check && biome check",
+		"lint-format": "npm run type-check && biome check --write",
+		"test": "node ./tools/ensure-generated-fonts.js && node --test --test-isolation=process \"test/**/*.spec.js\"",
+		"type-check": "node ./tools/ensure-generated-fonts.js && tsc -p ./tsconfig.json",
+		"upgrade": "node ./tools/upgrade.js"
+	},
+	"type": "module",
+	"version": "1.0.0"
+}

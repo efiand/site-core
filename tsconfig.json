@@ -1,0 +1,13 @@
+{
+	"exclude": ["node_modules"],
+	"extends": ["./config/tsconfig.base.json"],
+	"include": [
+		"client/**/*.js",
+		"common/**/*.js",
+		"config/**/*.js",
+		"server/**/*.js",
+		"test/**/*.js",
+		"tools/**/*.js",
+		"types/index.d.ts"
+	]
+}
