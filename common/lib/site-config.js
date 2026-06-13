@@ -53,7 +53,9 @@ function setSiteConfig(patch) {
 	if (routes !== undefined) {
 		routePaths = new Set(Object.keys(routes));
 		state.publicPages = new Set(
-			Object.keys(routes).filter((path) => !path.startsWith('/__/') && path !== '/sitemap.xml' && !path.includes('.')),
+			Object.keys(routes).filter(
+				(path) => !path.startsWith('/__/') && path !== '/sitemap.xml' && !path.includes('.') && !path.includes(':'),
+			),
 		);
 
 		if (typeof process !== 'undefined') {

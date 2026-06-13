@@ -33,7 +33,7 @@ alwaysApply: true
 
 - **Импорты** — в начале (Biome `organizeImports`); именованные specifiers в `import { … }` — по алфавиту (`identifierOrder: lexicographic`).
 - **Константы** — после импортов, по алфавиту.
-- **Функции** — по алфавиту; без `export` у объявления.
+- **Функции** — по алфавиту; без `export` у объявления; **между соседними top-level `function` / `async function` — одна пустая строка** (между `}` предыдущей и `/**` следующей; JSDoc и её `function` / `async function` — **без пустой строки между ними**). Только между **объявлениями** функций — не в исполняемом коде и не в шаблонных литералах разметки. Biome не покрывает — [`tools/check-function-order.js`](tools/check-function-order.js).
 - **Экспорт** — один блок `export { … }` **в конце файла** (Biome `useExportsLast`); имена в блоке — **по алфавиту** (Biome `organizeImports`, `identifierOrder: lexicographic`). Inline `export function` / `export const` / `export default` **запрещены** (`noDefaultExport`); default export не используем.
 - **Top-level исполняемый код** — после функций, до `export { … }`; в `tools/` — в конце файла перед экспортом.
 - **Свойства в деструктуризации** параметров — по алфавиту (включая порядок полей в `@type`-сигнатуре функции).
@@ -42,9 +42,12 @@ alwaysApply: true
 
 - JSDoc у экспортируемых функций — когда добавляет описание, именованный тип (`LayoutData`, `RouteMethod`) или неочевидный возврат.
 - Не дублируй типы, видимые из дефолтов и сигнатуры (пример: `renderInnerPage({ heading = '', pathname = '', template = '' } = {})`).
-- Типизацию функций — одним `@type` с сигнатурой `(params) => Return`, не отдельными `@param` / `@returns`; строка `@type` не длиннее `lineWidth` из [`config/biome.core.json`](config/biome.core.json) (120). Не влезает — именованный тип в [`types/`](types/) (тематический `.d.ts`) и короткий `@type {(…) => TypeName}`; крайний случай — `@param` / `@returns`.
+- Типизацию функций — одним `@type` с сигнатурой `(params) => Return`, не отдельными `@param` / `@returns`; строка `@type` не длиннее `lineWidth` из [`config/biome.core.json`](config/biome.core.json) (120). Не влезает — именованный тип в [`types/`](types/) (тематический `.d.ts`) и короткий `@type {(…) => TypeName}`; крайний случай — `@param` / `@returns`. **`@typedef`** — только если тип переиспользуется или не влезает inline; иначе объектный тип пиши прямо в `@type`.
 - `@type` оставляй, когда без него тип не выводится: `.d.ts`-тип, `typeof` от константы, union сложнее дефолтов.
 - Между текстовым описанием и тегами JSDoc — пустая строка (` *` на отдельной строке).
+- **Перед закрывающим ` */` внутри JSDoc пустой строки быть не должно** — тег `@type` / `@param` / `@returns` сразу над ` */`.
+- Однострочный `/** @type {…} */` — открытие и ` */` на **одной** строке; не разрывать ` */` на следующую. Комментарий и типизируемая сущность (`function`, `const`, `return …`) — **соседние строки**, без пустой строки между ними. Проверка [`check-function-order.js`](tools/check-function-order.js) — только block-JSDoc перед top-level `function`, не inline-cast и не вложенные объявления.
+- Проверка JSDoc — [`tools/check-function-order.js`](tools/check-function-order.js) (Biome не покрывает).
 - Внутри функций — обычные комментарии там, где JSDoc не сработает.
 
 # JavaScript и DOM
@@ -113,17 +116,19 @@ alwaysApply: true
 - Biome дополнительно к `preset: recommended`: `useArrowFunction: off` (объявления через `function`), `useFilenamingConvention` (kebab-case), `useNodejsImportProtocol`, `useImportType`, `useTemplate`, `noUselessStringConcat`, `useExponentiationOperator` (`**`), `useDestructuring`, `noVar`, `useConst`, `useBlockStatements`, `noConsole`, `useExportsLast`, `noDefaultExport`, `noUnusedImports`, `noUnusedVariables` и др. — см. [`biome.core.json`](config/biome.core.json).
 - Именование (`is*`, `on*`, `*Element`, `render*`, UPPER_SNAKE vs camelCase у `export const`, запрет `btn`, `*Handler`, однобуквенных имён вне `i`/`j`/`k`, `_` для discard) Biome **не** покрывает — следи вручную по разделу «Именование».
 - **Assist** (`biome check --write`, `npm run lint-format`): `organizeImports` — алфавит specifiers в `import { … }`; `useSortedKeys` — алфавит ключей в объектных литералах и **JSON-конфигах** (`tsconfig.json`, `package.json`, `biome.json` и т.п.). После правок — прогоняй `lint-format`, иначе pre-commit/CI поймает расхождение (например, порядок ключей в `tsconfig.json`).
+- **Временные файлы агента** — в `tmp/` корня репозитория; см. [`workflow-core.mdc`](workflow-core.mdc) («tmp/»); не в `tools/` и не в tracked-путях.
+- **Порядок функций** — top-level `function` / `async function` по алфавиту и **пустая строка между соседними объявлениями** (перед `/**` следующей функции; JSDoc не отрывать от `function`); не в теле функций, не в шаблонах HTML/XML/SQL; проверка — [`tools/check-function-order.js`](tools/check-function-order.js) (Biome не покрывает).
 - Логирование — через [`log`](common/lib/log.js), не `console.*` (кроме тестов, реализации `log`, CLI в `tools/*`; [`tools/upgrade-github-actions.js`](tools/upgrade-github-actions.js) — `console.info` при обновлении actions).
 
 ## Скрипты
 
 | | **site-core** | **хост** |
 |--|---------------|----------|
-| type-check | `npm run type-check` (`tsc`) | `npm run type-check` → `site-core-type-check` |
+| type-check | `npm run type-check` (`ensure-generated-fonts` + `tsc -p ./tsconfig.json`) | `npm run type-check` → `site-core-type-check` ([`tools/type-check.js`](tools/type-check.js), `resolveBin`) |
 | lint | `npm run lint` | `npm run lint` → `site-core-lint` |
 | lint-format | `npm run lint-format` | `npm run lint-format` → `site-core-lint --write` |
 
-Оба `lint*` = `type-check` + `biome check` (у `lint-format` — с `--write`).
+Оба `lint*` = `lint-static-check` + `biome check` (у `lint-format` — с `--write`). `lint-static-check` = `npm run type-check` + `check-function-order`; на хосте — [`tools/lint-static-check.js`](tools/lint-static-check.js) через `site-core-lint`.
 
 ## Workflow
 

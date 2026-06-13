@@ -1,3 +1,8 @@
+/** @type {(res: RouteResponse, name: string, path?: string) => void} */
+function deleteCookie(res, name, path = '/') {
+	setCookie(res, { maxAge: 0, name, path, value: '' });
+}
+
 /** @type {(req: RouteRequest) => Record<string, string | undefined>} */
 function getCookies(req) {
 	const cookieHeader = req.headers.cookie;
@@ -50,11 +55,6 @@ function setCookie(
 	} else {
 		res.setHeader('Set-Cookie', cookieString);
 	}
-}
-
-/** @type {(res: RouteResponse, name: string, path?: string) => void} */
-function deleteCookie(res, name, path = '/') {
-	setCookie(res, { maxAge: 0, name, path, value: '' });
 }
 
 export { deleteCookie, getCookies, setCookie };

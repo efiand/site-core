@@ -22,6 +22,11 @@ purify.addHook('afterSanitizeAttributes', (node) => {
 typograf.enableRule('common/nbsp/afterNumber');
 typograf.disableRule('common/punctuation/quoteLink');
 
+/** @type {(html: string, clearTags?: boolean) => Promise<string>} */
+async function prepareAndMinifyHtml(html, clearTags = false) {
+	return await minifyHtml(prepareText(html, clearTags), { removeAttributeQuotes: false });
+}
+
 /** @type {(html: string, clearTags?: boolean) => string} */
 function prepareText(html, clearTags = false) {
 	let text = '';
@@ -36,11 +41,6 @@ function prepareText(html, clearTags = false) {
 	}
 
 	return typograf.execute(text).trim();
-}
-
-/** @type {(html: string, clearTags?: boolean) => Promise<string>} */
-async function prepareAndMinifyHtml(html, clearTags = false) {
-	return await minifyHtml(prepareText(html, clearTags), { removeAttributeQuotes: false });
 }
 
 export { prepareAndMinifyHtml, prepareText };

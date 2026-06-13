@@ -1,6 +1,6 @@
 import { defineConfig } from 'html-validate';
 
-export default defineConfig({
+const htmlvalidateConfig = defineConfig({
 	extends: ['html-validate:recommended', 'html-validate:document'],
 	rules: {
 		'long-title': 'off',
@@ -9,3 +9,5 @@ export default defineConfig({
 		'require-sri': 'off',
 	},
 });
+
+export { htmlvalidateConfig };

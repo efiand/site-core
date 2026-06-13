@@ -1,9 +1,21 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { resolveBinSpawn } from './resolve-bin.js';
 
-const hostCwd = process.cwd();
-const { command, args } = resolveBinSpawn('tsc', ['-p', './tsconfig.json'], hostCwd);
-const result = spawnSync(command, args, { cwd: hostCwd, stdio: 'inherit' });
+/** @param {string} [cwd=process.cwd()] */
+function runTypeCheck(cwd = process.cwd()) {
+	const { command, args } = resolveBinSpawn('tsc', ['-p', './tsconfig.json'], cwd);
+	const result = spawnSync(command, args, { cwd, stdio: 'inherit' });
 
-process.exit(result.status ?? 1);
+	if (result.status !== 0) {
+		process.exit(result.status ?? 1);
+	}
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+	runTypeCheck(process.cwd());
+}
+
+export { runTypeCheck };

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { runLintStaticCheck } from './lint-static-check.js';
 import { resolveBinSpawn } from './resolve-bin.js';
 
 const hostCwd = process.cwd();
@@ -14,5 +15,5 @@ function runBin(name, args) {
 	}
 }
 
-runBin('tsc', ['-p', './tsconfig.json']);
+runLintStaticCheck(hostCwd);
 runBin('biome', ['check', ...process.argv.slice(2)]);

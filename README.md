@@ -180,7 +180,7 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 |-----|------------|
 | `site-core-dev` | dev/preview: dotenvx + nodemon + dev-middleware; `createApp` из `app/server/lib/app.js` |
 | `site-core-run` | toolchain CLI (rolldown, postcss, dotenvx, node…) в cwd хоста |
-| `site-core-lint` | tsc + biome в cwd хоста |
+| `site-core-lint` | `lint-static-check` + biome в cwd хоста |
 | `site-core-type-check` | tsc в cwd хоста |
 | `site-core-postinstall` | symlink dev-конфига + генерация шрифтов хоста |
 | `site-core-build-static-pages` | HTML из `getSiteConfig().buildPages` через running app (`SITE_CORE_APP`, cwd хоста) |

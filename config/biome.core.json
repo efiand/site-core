@@ -16,7 +16,7 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!node_modules", "!public"]
+		"includes": ["**", "!node_modules", "!public", "!tmp"]
 	},
 	"formatter": {
 		"enabled": true,

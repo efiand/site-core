@@ -3,15 +3,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, 
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/** @param {string} filePath */
-function toPosixPath(filePath) {
-	return filePath.replace(/\\/g, '/');
-}
-
-/**
- * @param {string} startDir
- * @returns {string | null}
- */
+/** @type {(startDir: string) => string | null} */
 function findGitDir(startDir) {
 	let current = path.resolve(startDir);
 
@@ -43,10 +35,7 @@ function findGitDir(startDir) {
 	}
 }
 
-/**
- * @param {string} hostRoot
- * @returns {boolean}
- */
+/** @type {(hostRoot: string) => boolean} */
 function hasPreCommitConfig(hostRoot) {
 	try {
 		const pkg = JSON.parse(readFileSync(path.join(hostRoot, 'package.json'), 'utf8'));
@@ -73,22 +62,11 @@ function hasPreCommitConfig(hostRoot) {
 }
 
 /**
- * @param {string} hostRoot
- * @returns {string | null}
- */
-function resolvePreCommitCli(hostRoot) {
-	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
-	const cli = path.join(coreRoot, 'node_modules/@fastify/pre-commit/index.js');
-
-	return existsSync(cli) ? cli : null;
-}
-
-/**
  * На хосте @fastify/pre-commit nested в node_modules/site-core; штатный install.js
  * через file:-link резолвит __dirname в core и ставит hook не в тот .git.
  * Пишем hook вручную с абсолютным путём к index.js.
  *
- * @param {string} hostRoot
+ * @type {(hostRoot: string) => void}
  */
 function installHostPreCommit(hostRoot) {
 	const resolvedHost = path.resolve(hostRoot);
@@ -142,6 +120,19 @@ function installHostPreCommit(hostRoot) {
 	} catch {
 		// Windows may reject chmod; hook still works in Git Bash
 	}
+}
+
+/** @type {(hostRoot: string) => string | null} */
+function resolvePreCommitCli(hostRoot) {
+	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
+	const cli = path.join(coreRoot, 'node_modules/@fastify/pre-commit/index.js');
+
+	return existsSync(cli) ? cli : null;
+}
+
+/** @type {(filePath: string) => string} */
+function toPosixPath(filePath) {
+	return filePath.replace(/\\/g, '/');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

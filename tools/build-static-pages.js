@@ -4,11 +4,6 @@ import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { closeApp, getAppHost, waitForApp } from '#core/server/lib/http-server.js';
 import { minifyHtml } from '#core/server/lib/minify-html.js';
 
-/** @type {(url: string) => void} */
-function logPageBuilt(url) {
-	console.info(`Страница ${url} сгенерирована.`);
-}
-
 /**
  * Статическая генерация HTML через running dev-server.
  *
@@ -56,6 +51,11 @@ async function buildStaticPages({ createApp, onPageBuilt = logPageBuilt }) {
 	console.info(`✅ Всего сгенерировано страниц: ${completedPages}`);
 
 	return completedPages;
+}
+
+/** @type {(url: string) => void} */
+function logPageBuilt(url) {
+	console.info(`Страница ${url} сгенерирована.`);
 }
 
 export { buildStaticPages };

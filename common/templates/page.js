@@ -8,30 +8,6 @@ import { renderFontPreloads } from '#core/common/templates/font-preloads.js';
 import { renderPageAssets } from '#core/common/templates/page-assets.js';
 import { renderYandexMetrika } from '#core/common/templates/yandex-metrika.js';
 
-/** @type {(pathname: string, baseUrl: string) => string} */
-function renderUrlMeta(pathname, baseUrl) {
-	if (!pathname) {
-		return /* html */ `<meta name="robots" content="noindex, nofollow">`;
-	}
-
-	let template = /* html */ `<meta property="og:url" content="${baseUrl}${pathname}">`;
-	if (!pathname.startsWith('/__')) {
-		template += /* html */ `<link rel="canonical" href="${baseUrl}${pathname}">`;
-	}
-
-	return template;
-}
-
-/** @type {(layoutData: LayoutData, pathname: string, renderLayout: (data: LayoutData) => string) => string} */
-function renderBody(layoutData, pathname, renderLayout) {
-	return /* html */ `
-		<body>
-			${renderYandexMetrika({ pathname })}
-			${renderLayout(layoutData)}
-		</body>
-	`;
-}
-
 /** @type {(options: CreateRenderPageOptions) => (data: LayoutData) => Promise<string>} */
 function createRenderPage({
 	defaultOgImage = '/web-app-manifest-512x512.png',
@@ -101,6 +77,30 @@ function createRenderPage({
 			</html>
 		`;
 	};
+}
+
+/** @type {(layoutData: LayoutData, pathname: string, renderLayout: (data: LayoutData) => string) => string} */
+function renderBody(layoutData, pathname, renderLayout) {
+	return /* html */ `
+		<body>
+			${renderYandexMetrika({ pathname })}
+			${renderLayout(layoutData)}
+		</body>
+	`;
+}
+
+/** @type {(pathname: string, baseUrl: string) => string} */
+function renderUrlMeta(pathname, baseUrl) {
+	if (!pathname) {
+		return /* html */ `<meta name="robots" content="noindex, nofollow">`;
+	}
+
+	let template = /* html */ `<meta property="og:url" content="${baseUrl}${pathname}">`;
+	if (!pathname.startsWith('/__')) {
+		template += /* html */ `<link rel="canonical" href="${baseUrl}${pathname}">`;
+	}
+
+	return template;
 }
 
 export { createRenderPage };

@@ -1,11 +1,11 @@
 {
 	"dependencies": {
-		"site-core": "file:../site-core"
+		"site-core": "git+https://github.com/efiand/site-core.git#1.0.1"
 	},
 	"pre-commit": ["lint-format", "test"],
 	"scripts": {
 		"lint-format": "site-core-lint --write",
 		"postinstall": "site-core-postinstall",
-		"test": "npm run build && site-core-run node --import site-core/tools/register-vendors.js --test --test-isolation=process \"test/**/*.spec.js\""
+		"test": "site-core-run node --import site-core/tools/register-vendors.js --test --test-isolation=process \"test/**/*.spec.js\""
 	}
 }

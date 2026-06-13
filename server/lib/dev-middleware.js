@@ -5,48 +5,7 @@ import { log } from '#core/common/lib/log.js';
 import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { STATIC_MIME_TYPES, staticExtensions } from '#core/common/lib/static-mime-types.js';
 
-/** @type {(pathname: string, isDev?: boolean) => string} */
-function getStaticRoot(pathname, isDev = getSiteConfig().isDev) {
-	if (!isDev) {
-		return './public';
-	}
-
-	if (/^\/client\/.*\.(css|js|svg)$/.test(pathname)) {
-		return './src';
-	}
-
-	if (/^\/common|components\/.*\.js$/.test(pathname)) {
-		return './app';
-	}
-
-	if (/^\/core\/.*\.(css|js|svg)$/.test(pathname)) {
-		return './node_modules/site-core';
-	}
-
-	return './public';
-}
-
-/** @type {(pathname: string, cwd?: string, isDev?: boolean) => string} */
-function resolveStaticPath(pathname, cwd = process.cwd(), isDev = getSiteConfig().isDev) {
-	const root = getStaticRoot(pathname, isDev);
-	if (root === './node_modules/site-core') {
-		return path.join(cwd, root, pathname.replace(/^\/core\//, ''));
-	}
-	return path.join(cwd, root, pathname);
-}
-
 let sseData = 'reload';
-
-/** @type {(res: RouteResponse) => void} */
-function sendReload(res) {
-	res.writeHead(200, {
-		'Cache-Control': 'no-cache',
-		Connection: 'keep-alive',
-		'Content-Type': 'text/event-stream',
-	});
-	res.write(`retry: 33\ndata: ${sseData}\nid: ${Date.now()}\n\n`);
-	sseData = '';
-}
 
 /** @type {(options?: CreateDevMiddlewareOptions) => ServerMiddleware} */
 function createDevMiddleware({ onStaticRequest } = {}) {
@@ -89,6 +48,47 @@ function createDevMiddleware({ onStaticRequest } = {}) {
 			next?.(req, res);
 		}
 	};
+}
+
+/** @type {(pathname: string, isDev?: boolean) => string} */
+function getStaticRoot(pathname, isDev = getSiteConfig().isDev) {
+	if (!isDev) {
+		return './public';
+	}
+
+	if (/^\/client\/.*\.(css|js|svg)$/.test(pathname)) {
+		return './src';
+	}
+
+	if (/^\/common|components\/.*\.js$/.test(pathname)) {
+		return './app';
+	}
+
+	if (/^\/core\/.*\.(css|js|svg)$/.test(pathname)) {
+		return './node_modules/site-core';
+	}
+
+	return './public';
+}
+
+/** @type {(pathname: string, cwd?: string, isDev?: boolean) => string} */
+function resolveStaticPath(pathname, cwd = process.cwd(), isDev = getSiteConfig().isDev) {
+	const root = getStaticRoot(pathname, isDev);
+	if (root === './node_modules/site-core') {
+		return path.join(cwd, root, pathname.replace(/^\/core\//, ''));
+	}
+	return path.join(cwd, root, pathname);
+}
+
+/** @type {(res: RouteResponse) => void} */
+function sendReload(res) {
+	res.writeHead(200, {
+		'Cache-Control': 'no-cache',
+		Connection: 'keep-alive',
+		'Content-Type': 'text/event-stream',
+	});
+	res.write(`retry: 33\ndata: ${sseData}\nid: ${Date.now()}\n\n`);
+	sseData = '';
 }
 
 export { createDevMiddleware, getStaticRoot, resolveStaticPath, sendReload };

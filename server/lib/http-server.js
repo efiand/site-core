@@ -17,9 +17,15 @@ async function closeApp(server) {
 }
 
 /** @type {(options: CreateHttpServerOptions) => import('node:http').Server} */
-function createHttpServer({ isQuiet = false, middleware, port, renderErrorPage, renderPage }) {
+function createHttpServer({ dispatch, isQuiet = false, middleware, port, renderErrorPage, renderPage }) {
 	const { port: configPort } = getSiteConfig();
-	const onRequest = createStandardRouteDispatcher({ isQuiet, renderErrorPage, renderPage });
+	const onRequest =
+		dispatch ??
+		createStandardRouteDispatcher({
+			isQuiet,
+			renderErrorPage,
+			renderPage,
+		});
 
 	const server = createServer((req, res) => {
 		if (middleware) {

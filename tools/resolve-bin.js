@@ -48,22 +48,6 @@ function resolveBin(name, hostCwd = process.cwd()) {
 	throw new Error(`CLI "${name}" not found. Run npm install in the host project.`);
 }
 
-/** @type {(pkgName: string, hostCwd: string) => string | null} */
-function resolvePackageDir(pkgName, hostCwd) {
-	for (const root of [hostCwd, siteCoreRoot]) {
-		try {
-			const require = createRequire(path.join(root, 'package.json'));
-			const pkgJsonPath = require.resolve(`${pkgName}/package.json`);
-
-			return path.dirname(pkgJsonPath);
-		} catch {
-			// try next
-		}
-	}
-
-	return null;
-}
-
 /** @type {(cliName: string, hostCwd: string) => string | null} */
 function resolveBinScript(cliName, hostCwd) {
 	const pkgName = CLI_PACKAGES[cliName] ?? cliName;
@@ -117,6 +101,22 @@ function resolveBinSpawn(cliName, cliArgs = [], hostCwd = process.cwd()) {
 	}
 
 	return { args: cliArgs, command: resolveBin(cliName, hostCwd) };
+}
+
+/** @type {(pkgName: string, hostCwd: string) => string | null} */
+function resolvePackageDir(pkgName, hostCwd) {
+	for (const root of [hostCwd, siteCoreRoot]) {
+		try {
+			const require = createRequire(path.join(root, 'package.json'));
+			const pkgJsonPath = require.resolve(`${pkgName}/package.json`);
+
+			return path.dirname(pkgJsonPath);
+		} catch {
+			// try next
+		}
+	}
+
+	return null;
 }
 
 export { resolveBin, resolveBinSpawn };

@@ -15,6 +15,16 @@ const pool = mysql.createPool({
 	waitForConnections: true,
 });
 
+async function closeDbPool() {
+	await pool.end();
+}
+
+/** @type {(error: unknown) => string} */
+function getDbError(error) {
+	const { sqlMessage = '' } = /** @type {{ sqlMessage?: string }} */ (error || {});
+	return sqlMessage;
+}
+
 /** @type {(query: string, payload: DbPlaceholder) => DbPlaceholder[]} */
 function getPlaceholders(query, payload) {
 	if (Array.isArray(payload)) {
@@ -37,16 +47,6 @@ function logDbError(error, context = {}) {
 		sqlState: err.sqlState,
 		...context,
 	});
-}
-
-async function closeDbPool() {
-	await pool.end();
-}
-
-/** @type {(error: unknown) => string} */
-function getDbError(error) {
-	const { sqlMessage = '' } = /** @type {{ sqlMessage?: string }} */ (error || {});
-	return sqlMessage;
 }
 
 /** @type {(query: string, payload?: DbPlaceholder) => Promise<any>} */

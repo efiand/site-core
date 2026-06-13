@@ -24,13 +24,80 @@ const WEIGHT_NAMES = {
 
 const CANONICAL_STEM_REGEX = /^(.+)-(\d{3})(-italic)?$/;
 
-/** @type {(slug: string) => string} */
-function slugToFamilyName(slug) {
-	return slug
-		.split('-')
-		.filter(Boolean)
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
+/** @type {(hostRoot: string) => { cssPath: string; fonts: string[]; jsPath: string }} */
+function generateHostFonts(hostRoot) {
+	const coreRoot = resolveCoreRoot(hostRoot);
+	const fontsDir = path.join(hostRoot, 'public', 'fonts');
+	const cssPath = path.join(hostRoot, 'src', 'client', 'css', 'common', 'fonts.css');
+	const jsPath = path.join(coreRoot, 'common', 'generated', 'fonts.js');
+
+	if (!fs.existsSync(fontsDir)) {
+		fs.mkdirSync(fontsDir, { recursive: true });
+	}
+
+	/** @type {Map<string, { canonicalName: string; familyName: string; italic: boolean; weight: number }>} */
+	const fontsByCanonical = new Map();
+
+	for (const entry of fs.readdirSync(fontsDir, { withFileTypes: true })) {
+		if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.woff2')) {
+			continue;
+		}
+
+		const parsed = parseFontFilename(entry.name);
+		if (!parsed) {
+			console.warn(`site-core-postinstall: skip unrecognized font ${entry.name}`);
+			continue;
+		}
+
+		const sourcePath = path.join(fontsDir, entry.name);
+		const targetPath = path.join(fontsDir, parsed.canonicalName);
+
+		if (sourcePath !== targetPath) {
+			if (fs.existsSync(targetPath)) {
+				fs.rmSync(targetPath);
+			}
+			fs.renameSync(sourcePath, targetPath);
+			console.info(`Renamed ${entry.name} → ${parsed.canonicalName}`);
+		}
+
+		fontsByCanonical.set(parsed.canonicalName, { ...parsed, canonicalName: parsed.canonicalName });
+	}
+
+	const fonts = [...fontsByCanonical.keys()].sort();
+	const css = [...fontsByCanonical.values()]
+		.sort((left, right) => left.canonicalName.localeCompare(right.canonicalName))
+		.map(renderFontFace)
+		.join('\n');
+
+	fs.mkdirSync(path.dirname(cssPath), { recursive: true });
+	fs.writeFileSync(cssPath, css, 'utf8');
+
+	writeFontsRegistry(jsPath, fonts);
+
+	console.info(`Generated ${path.relative(hostRoot, cssPath)} (${fonts.length} @font-face)`);
+	console.info(`Generated ${path.relative(coreRoot, jsPath)}`);
+
+	return { cssPath, fonts, jsPath };
+}
+
+/** @type {(filename: string) => { canonicalName: string; familyName: string; italic: boolean; weight: number } | null} */
+function parseFontFilename(filename) {
+	const stem = filename.replace(/\.woff2$/i, '');
+	const parsed = parseFontStem(stem);
+
+	if (!parsed) {
+		return null;
+	}
+
+	const suffix = parsed.italic ? '-italic' : '';
+	const canonicalName = `${parsed.familySlug}-${parsed.weight}${suffix}.woff2`;
+
+	return {
+		canonicalName,
+		familyName: slugToFamilyName(parsed.familySlug),
+		italic: parsed.italic,
+		weight: parsed.weight,
+	};
 }
 
 /** @type {(stem: string) => { familySlug: string; italic: boolean; weight: number } | null} */
@@ -95,26 +162,6 @@ function parseFontStem(stem) {
 	return null;
 }
 
-/** @type {(filename: string) => { canonicalName: string; familyName: string; italic: boolean; weight: number } | null} */
-function parseFontFilename(filename) {
-	const stem = filename.replace(/\.woff2$/i, '');
-	const parsed = parseFontStem(stem);
-
-	if (!parsed) {
-		return null;
-	}
-
-	const suffix = parsed.italic ? '-italic' : '';
-	const canonicalName = `${parsed.familySlug}-${parsed.weight}${suffix}.woff2`;
-
-	return {
-		canonicalName,
-		familyName: slugToFamilyName(parsed.familySlug),
-		italic: parsed.italic,
-		weight: parsed.weight,
-	};
-}
-
 /** @type {(font: { canonicalName: string; familyName: string; italic: boolean; weight: number }) => string} */
 function renderFontFace({ canonicalName, familyName, italic, weight }) {
 	return `@font-face {
@@ -138,6 +185,15 @@ function resolveCoreRoot(hostRoot) {
 	return hostRoot;
 }
 
+/** @type {(slug: string) => string} */
+function slugToFamilyName(slug) {
+	return slug
+		.split('-')
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ');
+}
+
 /** @type {(jsPath: string, fonts: string[]) => void} */
 function writeFontsRegistry(jsPath, fonts) {
 	fs.mkdirSync(path.dirname(jsPath), { recursive: true });
@@ -149,62 +205,6 @@ export const fonts = ${fontsExport};
 `;
 
 	fs.writeFileSync(jsPath, js, 'utf8');
-}
-
-/** @type {(hostRoot: string) => { cssPath: string; fonts: string[]; jsPath: string }} */
-function generateHostFonts(hostRoot) {
-	const coreRoot = resolveCoreRoot(hostRoot);
-	const fontsDir = path.join(hostRoot, 'public', 'fonts');
-	const cssPath = path.join(hostRoot, 'src', 'client', 'css', 'common', 'fonts.css');
-	const jsPath = path.join(coreRoot, 'common', 'generated', 'fonts.js');
-
-	if (!fs.existsSync(fontsDir)) {
-		fs.mkdirSync(fontsDir, { recursive: true });
-	}
-
-	/** @type {Map<string, { canonicalName: string; familyName: string; italic: boolean; weight: number }>} */
-	const fontsByCanonical = new Map();
-
-	for (const entry of fs.readdirSync(fontsDir, { withFileTypes: true })) {
-		if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.woff2')) {
-			continue;
-		}
-
-		const parsed = parseFontFilename(entry.name);
-		if (!parsed) {
-			console.warn(`site-core-postinstall: skip unrecognized font ${entry.name}`);
-			continue;
-		}
-
-		const sourcePath = path.join(fontsDir, entry.name);
-		const targetPath = path.join(fontsDir, parsed.canonicalName);
-
-		if (sourcePath !== targetPath) {
-			if (fs.existsSync(targetPath)) {
-				fs.rmSync(targetPath);
-			}
-			fs.renameSync(sourcePath, targetPath);
-			console.info(`Renamed ${entry.name} → ${parsed.canonicalName}`);
-		}
-
-		fontsByCanonical.set(parsed.canonicalName, { ...parsed, canonicalName: parsed.canonicalName });
-	}
-
-	const fonts = [...fontsByCanonical.keys()].sort();
-	const css = [...fontsByCanonical.values()]
-		.sort((left, right) => left.canonicalName.localeCompare(right.canonicalName))
-		.map(renderFontFace)
-		.join('\n');
-
-	fs.mkdirSync(path.dirname(cssPath), { recursive: true });
-	fs.writeFileSync(cssPath, css, 'utf8');
-
-	writeFontsRegistry(jsPath, fonts);
-
-	console.info(`Generated ${path.relative(hostRoot, cssPath)} (${fonts.length} @font-face)`);
-	console.info(`Generated ${path.relative(coreRoot, jsPath)}`);
-
-	return { cssPath, fonts, jsPath };
 }
 
 export { generateHostFonts, parseFontFilename, resolveCoreRoot, writeFontsRegistry };

@@ -2,22 +2,6 @@ import { log } from '#core/common/lib/log.js';
 import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { getRequestBody } from '#core/server/lib/request.js';
 
-/** @type {(pathname: string) => { id: number; routeKey: string }} */
-function resolveRouteKey(pathname) {
-	const isApi = pathname.startsWith('/api/');
-	const [, rawRouteName = '', rawId, rawIdInApi] = pathname.split('/');
-	const id = Number(isApi ? rawIdInApi : rawId);
-	let routeName = rawRouteName;
-
-	if (isApi) {
-		routeName = `api/${rawId}`;
-	}
-
-	const routeKey = Number.isNaN(id) ? pathname : `/${routeName}/:id`;
-
-	return { id, routeKey };
-}
-
 /** @type {(options: CreateStandardRouteDispatcherOptions) => ServerMiddleware} */
 function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, renderPage }) {
 	/** @type {(error: unknown, url: URL) => Promise<{ statusCode: number; template: string }>} */
@@ -97,6 +81,22 @@ function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, rende
 	}
 
 	return dispatch;
+}
+
+/** @type {(pathname: string) => { id: number; routeKey: string }} */
+function resolveRouteKey(pathname) {
+	const isApi = pathname.startsWith('/api/');
+	const [, rawRouteName = '', rawId, rawIdInApi] = pathname.split('/');
+	const id = Number(isApi ? rawIdInApi : rawId);
+	let routeName = rawRouteName;
+
+	if (isApi) {
+		routeName = `api/${rawId}`;
+	}
+
+	const routeKey = Number.isNaN(id) ? pathname : `/${routeName}/:id`;
+
+	return { id, routeKey };
 }
 
 export { createStandardRouteDispatcher, resolveRouteKey };

@@ -1,3 +1,4 @@
 node_modules/
 common/generated/
-tmp/
+tmp/*
+!tmp/README.md

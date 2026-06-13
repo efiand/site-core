@@ -17,19 +17,6 @@ const DEFAULT_LINKS = [
 	{ link: '.vscode/extensions.json', target: '.vscode/extensions.json' },
 ];
 
-/** @type {(linkPath: string, targetPath: string) => boolean} */
-function isValidLink(linkPath, targetPath) {
-	try {
-		if (!fs.existsSync(linkPath) || !fs.existsSync(targetPath)) {
-			return false;
-		}
-
-		return fs.realpathSync(linkPath) === fs.realpathSync(targetPath);
-	} catch {
-		return false;
-	}
-}
-
 /** @type {(hostRoot: string, linkPath: string, targetPath: string) => void} */
 function ensureLink(hostRoot, linkPath, targetPath) {
 	if (!fs.existsSync(targetPath)) {
@@ -76,6 +63,34 @@ function ensureLink(hostRoot, linkPath, targetPath) {
 	console.info(`Linked ${path.relative(hostRoot, linkPath)} → ${path.relative(hostRoot, targetPath)}`);
 }
 
+/** @type {(linkPath: string, targetPath: string) => boolean} */
+function isValidLink(linkPath, targetPath) {
+	try {
+		if (!fs.existsSync(linkPath) || !fs.existsSync(targetPath)) {
+			return false;
+		}
+
+		return fs.realpathSync(linkPath) === fs.realpathSync(targetPath);
+	} catch {
+		return false;
+	}
+}
+
+/** @type {(hostRoot?: string, links?: Array<{ link: string; target: string }>) => void} */
+function linkDevConfig(hostRoot = process.cwd(), links = DEFAULT_LINKS) {
+	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
+
+	if (!fs.existsSync(coreRoot)) {
+		return;
+	}
+
+	for (const { link, target } of links) {
+		ensureLink(hostRoot, path.join(hostRoot, link), path.join(coreRoot, target));
+	}
+
+	writeHostVscodeSettings(hostRoot, coreRoot);
+}
+
 /** @type {(hostRoot: string, coreRoot: string) => void} */
 function writeHostVscodeSettings(hostRoot, coreRoot) {
 	const sourcePath = path.join(coreRoot, '.vscode/settings.json');
@@ -98,21 +113,6 @@ function writeHostVscodeSettings(hostRoot, coreRoot) {
 
 	fs.writeFileSync(destPath, patched, 'utf8');
 	console.info(`Wrote ${path.relative(hostRoot, destPath)}`);
-}
-
-/** @type {(hostRoot?: string, links?: Array<{ link: string; target: string }>) => void} */
-function linkDevConfig(hostRoot = process.cwd(), links = DEFAULT_LINKS) {
-	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
-
-	if (!fs.existsSync(coreRoot)) {
-		return;
-	}
-
-	for (const { link, target } of links) {
-		ensureLink(hostRoot, path.join(hostRoot, link), path.join(coreRoot, target));
-	}
-
-	writeHostVscodeSettings(hostRoot, coreRoot);
 }
 
 export { DEFAULT_LINKS, linkDevConfig };

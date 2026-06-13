@@ -1,6 +1,7 @@
 type AppDispatch = (req?: import('node:http').IncomingMessage, res?: RouteResponse) => void | Promise<void>;
 
 type CreateHttpServerOptions = {
+	dispatch?: ServerMiddleware;
 	isQuiet?: boolean;
 	middleware?: ServerMiddleware;
 	port?: number;

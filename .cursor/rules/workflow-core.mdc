@@ -10,7 +10,15 @@ alwaysApply: true
 - `git status`, `git diff`, `git log` — только для диагностики, без изменения индекса и без коммитов.
 - Коммиты и PR — только по явной просьбе пользователя.
 - Не создавай markdown-файлы и прочую документацию, если пользователь не просил.
-- Временные тексты и черновики — в `tmp/`, не в `docs/`.
+
+# tmp/ (временные файлы)
+
+Одноразовые скрипты, черновики и промежуточные артефакты — **только** в `tmp/` **корня того репозитория**, где идёт работа (site-core или хост), не в `tools/` и не с префиксом `_` в tracked-путях.
+
+- Содержимое `tmp/` — в `.gitignore`; в git — только [`tmp/README.md`](../tmp/README.md) (описание каталога).
+- **Biome** — `!tmp` в `files.includes` [`config/biome.core.json`](../config/biome.core.json) (хост наследует через `extends`).
+- **TypeScript** — `tmp` в `exclude` [`config/tsconfig.base.json`](../config/tsconfig.base.json) и [`config/tsconfig.host.json`](../config/tsconfig.host.json).
+- После задачи временные файлы удаляй; pre-commit и CI их не lint'ят и не type-check'ят.
 
 # .gitignore
 
