@@ -20,11 +20,11 @@ Shared-библиотека для vanilla JS MPA/fullstack-проектов (`e
 
 ## Импорты
 
-| Namespace | Назначение |
-|-----------|------------|
-| `#core/common/*` | shared common (log, templates, …) |
+| Namespace        | Назначение                          |
+| ---------------- | ----------------------------------- |
+| `#core/common/*` | shared common (log, templates, …)   |
 | `#core/server/*` | shared server (db, auth helpers, …) |
-| `#core/client/*` | shared client (forms, metrika, …) |
+| `#core/client/*` | shared client (forms, metrika, …)   |
 
 В `package.json` хоста:
 
@@ -54,24 +54,24 @@ Entrypoint — [`types/index.d.ts`](types/index.d.ts): только `/// <refere
 
 `exclude` для JS core — см. `config/tsconfig.host.json`. Дополнительный `"src/types/**/*.d.ts"` — доменные типы хоста.
 
-| Файл | Содержание |
-|------|------------|
-| `index.d.ts` | entrypoint (`/// <reference />`, по алфавиту) |
-| `global.d.ts` | `Window`, `ProcessEnv` |
-| `server.d.ts` | `Route*`, `CreateAppOptions`, cookies, DB |
-| `view.d.ts` | `LayoutData` |
-| `tools.d.ts` | `BuildStaticPagesOptions`, `onPageBuilt` |
-| `metrika.d.ts` | Yandex Metrika |
-| `log.d.ts`, `url.d.ts`, `npm.d.ts`, `sitemap.d.ts` | утилиты |
-| `toolchain.d.ts`, `hyphen.d.ts` | module shims |
+| Файл                                               | Содержание                                    |
+| -------------------------------------------------- | --------------------------------------------- |
+| `index.d.ts`                                       | entrypoint (`/// <reference />`, по алфавиту) |
+| `global.d.ts`                                      | `Window`, `ProcessEnv`                        |
+| `server.d.ts`                                      | `Route*`, `CreateAppOptions`, cookies, DB     |
+| `view.d.ts`                                        | `LayoutData`                                  |
+| `tools.d.ts`                                       | `BuildStaticPagesOptions`, `onPageBuilt`      |
+| `metrika.d.ts`                                     | Yandex Metrika                                |
+| `log.d.ts`, `url.d.ts`, `npm.d.ts`, `sitemap.d.ts` | утилиты                                       |
+| `toolchain.d.ts`, `hyphen.d.ts`                    | module shims                                  |
 
 Subpath-импорты (`site-core/tools/…`, `#core/common/templates/…`) — **colocated `.d.ts` рядом с `.js`**:
 
-| Элемент | Правило |
-|---------|---------|
-| Функции | `export function fn(…): Return;` |
-| Константы | `export declare const NAME: Type;` (не `export const` — Biome parse) |
-| Global-типы | `/// <reference path="…/types/index.d.ts" />` при необходимости |
+| Элемент     | Правило                                                              |
+| ----------- | -------------------------------------------------------------------- |
+| Функции     | `export function fn(…): Return;`                                     |
+| Константы   | `export declare const NAME: Type;` (не `export const` — Biome parse) |
+| Global-типы | `/// <reference path="…/types/index.d.ts" />` при необходимости      |
 
 Примеры: [`tools/build-static-pages.d.ts`](tools/build-static-pages.d.ts), [`common/templates/yandex-metrika.d.ts`](common/templates/yandex-metrika.d.ts), [`common/templates/mailto-privacy.d.ts`](common/templates/mailto-privacy.d.ts).
 
@@ -103,12 +103,12 @@ Subpath-импорты (`site-core/tools/…`, `#core/common/templates/…`) —
 
 Git **не** импортирует внешние файлы — эталоны лежат в [`config/`](config/), в репозиторий хоста переносятся **вручную** (синхронизация при обновлении site-core).
 
-| Эталон в core | На хосте | Что сделать |
-|---------------|----------|-------------|
-| [`config/gitignore.host.example`](config/gitignore.host.example) | `.gitignore` | Скопировать общий блок (строки по алфавиту). Host-only паттерны — **в конце** файла, тоже по алфавиту. Уже в примере: `.editorconfig`, `.vscode/*`, `.cursor/rules/site-core` (junction/postinstall — не коммитить). |
-| [`config/env.example`](config/env.example) | `.env.example` + `.env` | В git — `.env.example` (можно взять за основу core + переменные деплоя хоста). `.env` — локально, **не коммитить**. `DEV_PORT` / `PORT` — для `site-core-dev` и prod. |
-| [`config/ci.host.example.yml`](config/ci.host.example.yml) | `.github/workflows/ci.yml` | **Шаг 3** миграции: заменить self-contained `ci.yml` на thin caller с `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z`. До релиза core — свой локальный workflow. |
-| [`config/package.host.example.json`](config/package.host.example.json) | `package.json` | Поле `"pre-commit": ["lint-format", "test"]` + скрипты `lint-format` / `test` / `postinstall`. Отдельная зависимость `@fastify/pre-commit` **не нужна** — hook ставит `site-core-postinstall`. |
+| Эталон в core                                                          | На хосте                   | Что сделать                                                                                                                                                                                                          |
+| ---------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`config/gitignore.host.example`](config/gitignore.host.example)       | `.gitignore`               | Скопировать общий блок (строки по алфавиту). Host-only паттерны — **в конце** файла, тоже по алфавиту. Уже в примере: `.editorconfig`, `.vscode/*`, `.cursor/rules/site-core` (junction/postinstall — не коммитить). |
+| [`config/env.example`](config/env.example)                             | `.env.example` + `.env`    | В git — `.env.example` (можно взять за основу core + переменные деплоя хоста). `.env` — локально, **не коммитить**. `DEV_PORT` / `PORT` — для `site-core-dev` и prod.                                                |
+| [`config/ci.host.example.yml`](config/ci.host.example.yml)             | `.github/workflows/ci.yml` | **Шаг 3** миграции: заменить self-contained `ci.yml` на thin caller с `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z`. До релиза core — свой локальный workflow.                                               |
+| [`config/package.host.example.json`](config/package.host.example.json) | `package.json`             | Поле `"pre-commit": ["lint-format", "test"]` + скрипты `lint-format` / `test` / `postinstall`. Отдельная зависимость `@fastify/pre-commit` **не нужна** — hook ставит `site-core-postinstall`.                       |
 
 Дополнительно (по необходимости): [`configure-site.host.example.js`](config/configure-site.host.example.js), [`view.host.example.d.ts`](config/view.host.example.d.ts) — стартовые заготовки для `configure-site` и `src/types/`.
 
@@ -118,16 +118,16 @@ Git **не** импортирует внешние файлы — эталоны
 
 Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/). **Запуск только на раннерах GitHub**; сервер хостинга получает готовый artifact (scp) и переключает `current` по ssh — см. [`workflow-core.mdc`](.cursor/rules/workflow-core.mdc).
 
-| Workflow | Назначение |
-|----------|------------|
-| `host-ci.yml` | lint + test + upload-artifact |
+| Workflow                     | Назначение                              |
+| ---------------------------- | --------------------------------------- |
+| `host-ci.yml`                | lint + test + upload-artifact           |
 | `deploy-static-releases.yml` | artifact → scp → ssh (`current` на VPS) |
 
 Шаблон caller для хоста — [`config/ci.host.example.yml`](config/ci.host.example.yml).
 
 **До шага 3** (git pin site-core) хост использует локальный self-contained `ci.yml`. **Шаг 3:** заменить на `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z` — см. `workflow-core.mdc`.
 
-**Релиз site-core:** bump `version` в `package.json` + push в `main` — job `release` создаёт tag и GitHub Release (tag уже есть — skip). **`[deploy]`** — только на **хостах** (деплой на VPS); см. [`workflow-core.mdc`](.cursor/rules/workflow-core.mdc).
+**Релиз site-core:** bump `version` в `package.json`, секция в [`CHANGELOG.md`](CHANGELOG.md), push в `main` — job `release` создаёт tag и GitHub Release (tag уже есть — skip). **`[deploy]`** — только на **хостах** (деплой на VPS); см. [`workflow-core.mdc`](.cursor/rules/workflow-core.mdc).
 
 ## Cache busting
 
@@ -135,17 +135,17 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 ## Yandex Metrika
 
-| Слой | Модуль | Назначение |
-|------|--------|------------|
-| SSR | [`renderYandexMetrika`](common/templates/yandex-metrika.js) | только `<noscript>` + комментарии |
-| SSR | [`renderYandexMetrikaScript`](common/templates/yandex-metrika-script.js) | `<script type="module" src="…/metrika.js">`; URL — [`buildYandexMetrikaScriptUrl`](common/lib/yandex-metrika-script-url.js), guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js) |
-| Client | [`initYandexMetrika`](client/lib/init-yandex-metrika.js) | загрузка tag.js, `ym(…, "init")`, очередь hits |
-| Client | [`loadScript`](client/lib/load-script.js) | однократная загрузка внешнего `<script>` по URL |
-| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | конфигурация хоста (server + client); init — `app/common/configure-site.js` |
-| SSR | [`renderDocumentTitle`](common/templates/document-title.js) | `parts.join(' | ') + projectTitle` из `getSiteConfig()` |
-| Static | [`STATIC_MIME_TYPES`](common/lib/static-mime-types.js) | MIME dev/static middleware + `staticExtensions` |
-| Хост | `src/client/entries/metrika.js` | `import '#common/configure-site.js'` + `initYandexMetrika()` |
-| Хост | `page.js` / assets | `renderYandexMetrikaScript({ isDev, pathname })`; CSS — `buildAssetQuery(getSiteConfig().version.CSS)` |
+| Слой   | Модуль                                                                                      | Назначение                                                                                                                                                                                              |
+| ------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| SSR    | [`renderYandexMetrika`](common/templates/yandex-metrika.js)                                 | только `<noscript>` + комментарии                                                                                                                                                                       |
+| SSR    | [`renderYandexMetrikaScript`](common/templates/yandex-metrika-script.js)                    | `<script type="module" src="…/metrika.js">`; URL — [`buildYandexMetrikaScriptUrl`](common/lib/yandex-metrika-script-url.js), guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js) |
+| Client | [`initYandexMetrika`](client/lib/init-yandex-metrika.js)                                    | загрузка tag.js, `ym(…, "init")`, очередь hits                                                                                                                                                          |
+| Client | [`loadScript`](client/lib/load-script.js)                                                   | однократная загрузка внешнего `<script>` по URL                                                                                                                                                         |
+| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | конфигурация хоста (server + client); init — `app/common/configure-site.js`                                                                                                                             |
+| SSR    | [`renderDocumentTitle`](common/templates/document-title.js)                                 | `parts.join('                                                                                                                                                                                           | ') + projectTitle`из`getSiteConfig()` |
+| Static | [`STATIC_MIME_TYPES`](common/lib/static-mime-types.js)                                      | MIME dev/static middleware + `staticExtensions`                                                                                                                                                         |
+| Хост   | `src/client/entries/metrika.js`                                                             | `import '#common/configure-site.js'` + `initYandexMetrika()`                                                                                                                                            |
+| Хост   | `page.js` / assets                                                                          | `renderYandexMetrikaScript({ isDev, pathname })`; CSS — `buildAssetQuery(getSiteConfig().version.CSS)`                                                                                                  |
 
 На `/__*` — без Metrika (ни script, ни noscript). Inline `<script>` с init в SSR **не используем**.
 
@@ -161,9 +161,9 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 Программно: `import { buildStaticPages } from 'site-core/tools/build-static-pages.js'` + `{ createApp }`.
 
-| Опция | Назначение |
-|-------|------------|
-| `createApp` | app-фабрика хоста |
+| Опция          | Назначение                                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createApp`    | app-фабрика хоста                                                                                                                                              |
 | `onPageBuilt?` | Колбэк после каждой страницы. **По умолчанию** — `console.info(\`Страница ${url} сгенерирована.\`)`. Итог `✅ Всего сгенерировано страниц: N` — всегда из core |
 
 `host`, `pages` (`getSiteConfig().buildPages`), `waitForApp`, `closeApp` — из site-core.
@@ -176,17 +176,17 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 ## Scripts (bin)
 
-| Bin | Назначение |
-|-----|------------|
-| `site-core-dev` | dev/preview: dotenvx + nodemon + dev-middleware; `createApp` из `app/server/lib/app.js` |
-| `site-core-run` | toolchain CLI (rolldown, postcss, dotenvx, node…) в cwd хоста |
-| `site-core-lint` | `lint-static-check` + biome в cwd хоста |
-| `site-core-type-check` | tsc в cwd хоста |
-| `site-core-postinstall` | symlink dev-конфига + генерация шрифтов хоста |
-| `site-core-build-static-pages` | HTML из `getSiteConfig().buildPages` через running app (`SITE_CORE_APP`, cwd хоста) |
-| `site-core-build-vendors` | tinymce vendors (Tier 2) |
-| `site-core-dump` | DB dump CLI (Tier 2) |
-| `site-core-upgrade` | `npm run upgrade` — deps хоста из `process.cwd()`, browserslist, rolldown wasm lockfile, GitHub Actions |
+| Bin                            | Назначение                                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `site-core-dev`                | dev/preview: dotenvx + nodemon + dev-middleware; `createApp` из `app/server/lib/app.js`                 |
+| `site-core-run`                | toolchain CLI (rolldown, postcss, dotenvx, node…) в cwd хоста                                           |
+| `site-core-lint`               | `lint-static-check` + biome в cwd хоста                                                                 |
+| `site-core-type-check`         | tsc в cwd хоста                                                                                         |
+| `site-core-postinstall`        | symlink dev-конфига + генерация шрифтов хоста                                                           |
+| `site-core-build-static-pages` | HTML из `getSiteConfig().buildPages` через running app (`SITE_CORE_APP`, cwd хоста)                     |
+| `site-core-build-vendors`      | tinymce vendors (Tier 2)                                                                                |
+| `site-core-dump`               | DB dump CLI (Tier 2)                                                                                    |
+| `site-core-upgrade`            | `npm run upgrade` — deps хоста из `process.cwd()`, browserslist, rolldown wasm lockfile, GitHub Actions |
 
 При `"site-core": "file:../site-core"` toolchain-пакеты не hoisting-ятся в хост — в тестах хоста: `site-core-run node --import site-core/tools/register-vendors.js --test …`.
 

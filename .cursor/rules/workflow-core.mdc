@@ -38,20 +38,20 @@ alwaysApply: true
 
 **GitHub Actions выполняются только на раннерах GitHub** (`runs-on: ubuntu-latest`), не на сервере хостинга. На VPS нет runner'а, workflow-файлов и npm CI — только статика (nginx) и каталоги релизов.
 
-| Где | Что происходит |
-|-----|----------------|
-| **Раннер GitHub** | checkout, `npm ci`, lint, test, upload-artifact; deploy-job — download artifact, **scp** на хостинг, **ssh** с shell-скриптом |
-| **Сервер хостинга (VPS)** | приём файлов по scp; по ssh — `mv …/new → releases/<ts>`, **`ln -sfn … current`**, cleanup старых релизов. Без Actions |
+| Где                                  | Что происходит                                                                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Раннер GitHub**                    | checkout, `npm ci`, lint, test, upload-artifact; deploy-job — download artifact, **scp** на хостинг, **ssh** с shell-скриптом         |
+| **Сервер хостинга (VPS)**            | приём файлов по scp; по ssh — `mv …/new → releases/<ts>`, **`ln -sfn … current`**, cleanup старых релизов. Без Actions                |
 | **Локальная машина (`postinstall`)** | junction/symlink dev-конфига (Cursor, VS Code, EditorConfig) + генерация шрифтов + **git pre-commit hook** — **не связано** с деплоем |
 
 Symlink `current` на хостинге — обычный `ln -sfn` в shell по ssh, не junction из `site-core-postinstall`.
 
 Обновление `uses:` — [`tools/upgrade-github-actions.js`](../tools/upgrade-github-actions.js) (cwd репозитория; только `owner/repo@tag`, не `./` и не reusable `org/repo/.github/workflows/…`).
 
-| Где запускать | Что обновляется |
-|---------------|-----------------|
-| **`npm run upgrade` в site-core** | `.github/workflows/` site-core (`ci.yml`, `host-ci.yml`, `deploy-static-releases.yml`, …) |
-| **`npm run upgrade` в хосте** | `.github/workflows/` **хоста** — только если есть локальные workflow с `uses:` (self-contained `ci.yml` до шага 3) |
+| Где запускать                     | Что обновляется                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **`npm run upgrade` в site-core** | `.github/workflows/` site-core (`ci.yml`, `host-ci.yml`, `deploy-static-releases.yml`, …)                          |
+| **`npm run upgrade` в хосте**     | `.github/workflows/` **хоста** — только если есть локальные workflow с `uses:` (self-contained `ci.yml` до шага 3) |
 
 - Официальные actions (`actions/*`) — major-тег последнего релиза (`@v6`, не `@v6.0.3`).
 - Сторонние actions — полный тег релиза (`@v1.2.5`).
@@ -66,9 +66,9 @@ Symlink `current` на хостинге — обычный `ln -sfn` в shell п
 
 Файлы в [`site-core/.github/workflows/`](../.github/workflows/):
 
-| Workflow | Назначение |
-|----------|------------|
-| [`host-ci.yml`](../.github/workflows/host-ci.yml) | checkout → node → `npm ci` → lint → test → upload-artifact |
+| Workflow                                                                        | Назначение                                                                        |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [`host-ci.yml`](../.github/workflows/host-ci.yml)                               | checkout → node → `npm ci` → lint → test → upload-artifact                        |
 | [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) | на **раннере**: artifact → scp → ssh; на **хостинге**: каталог релиза + `current` |
 
 Хост после публикации site-core вызывает через `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z`. Шаблон caller — [`config/ci.host.example.yml`](../config/ci.host.example.yml).
@@ -94,24 +94,32 @@ Deploy-static-releases (раннер GitHub): download artifact → scp → ssh.
 
 Без `[deploy]` — только **ручной bump** `version` в `package.json`.
 
-| Шаг | Действие |
-|-----|----------|
-| 1 | Поднять `"version"` в `package.json` (semver вручную) |
-| 2 | Push в `main` |
-| 3 | CI: lint + test → job `release` в [`ci.yml`](../.github/workflows/ci.yml) |
+| Шаг | Действие                                                                  |
+| --- | ------------------------------------------------------------------------- |
+| 1   | Поднять `"version"` в `package.json` (semver вручную)                   |
+| 2   | Дописать секцию в [`CHANGELOG.md`](../CHANGELOG.md) (см. ниже)            |
+| 3   | Push в `main`                                                             |
+| 4   | CI: lint + test → job `release` в [`ci.yml`](../.github/workflows/ci.yml) |
 
 Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть** — skip, CI зелёный. Auto-bump нет.
 
 Хосты pin: `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"` и `@X.Y.Z` в reusable `uses:`.
 
+### CHANGELOG.md
+
+- Файл в **корне site-core**; формат [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — SemVer.
+- При bump `version` — новая секция `## [X.Y.Z] - YYYY-MM-DD` **сразу под** вводным абзацем (сверху, новые версии выше старых).
+- Категории: `Added`, `Changed`, `Fixed`, `Removed` — только непустые; пункты для **потребителей** (хосты, bin, breaking, заметное поведение CLI), без перечисления каждого внутреннего рефакторинга.
+- Запись в CHANGELOG — **в том же коммите/PR**, что и bump `version`; job `release` файл не генерирует.
+
 ## `[deploy]` в commit message (только хосты)
 
 Keyword **`[deploy]`** — **только деплой хоста** на VPS, не релиз site-core.
 
-| Репозиторий | `[deploy]` |
-|-------------|------------|
-| **site-core** | **не используется** — релиз по `version`, см. выше |
-| **хост** | deploy-job: artifact → scp → ssh, `current` → новый релиз — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) или self-contained steps в `ci.yml` хоста (`if: contains(…, '[deploy]')`) |
+| Репозиторий   | `[deploy]`                                                                                                                                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **site-core** | **не используется** — релиз по `version`, см. выше                                                                                                                                                                    |
+| **хост**      | deploy-job: artifact → scp → ssh, `current` → новый релиз — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) или self-contained steps в `ci.yml` хоста (`if: contains(…, '[deploy]')`) |
 
 - Сначала релиз core (bump `version` + push), затем bump pin у хоста и при необходимости `[deploy]` на хосте.
 - README хоста про деплой — одна строка + ссылка на этот раздел / `ci.yml` хоста.
@@ -122,12 +130,12 @@ Keyword **`[deploy]`** — **только деплой хоста** на VPS, н
 
 **`site-core-postinstall` не трогает `.github/`** — это разные механизмы:
 
-| | postinstall (`linkDevConfig`) | GitHub Actions |
-|--|-------------------------------|----------------|
-| **Где** | локальная машина разработчика | раннеры GitHub + git-репозиторий |
-| **Зачем** | junction Cursor/VSCode + генерация шрифтов + **pre-commit hook** | CI, test, deploy (scp/ssh) |
+|                                | postinstall (`linkDevConfig`)                                                                               | GitHub Actions                                                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Где**                        | локальная машина разработчика                                                                               | раннеры GitHub + git-репозиторий                                                                                           |
+| **Зачем**                      | junction Cursor/VSCode + генерация шрифтов + **pre-commit hook**                                            | CI, test, deploy (scp/ssh)                                                                                                 |
 | **Почему не symlink workflow** | GitHub при `uses:` читает YAML из **git ref** опубликованного repo, не из `node_modules/site-core` на диске |
-| **Как обновлять** | `npm run postinstall` после смены шрифтов или `file:../site-core` | workflow в git хоста (шаг 3 — thin caller) + `npm run upgrade` для `uses: actions/*`; reusable — в site-core, pin `@X.Y.Z` |
+| **Как обновлять**              | `npm run postinstall` после смены шрифтов или `file:../site-core`                                           | workflow в git хоста (шаг 3 — thin caller) + `npm run upgrade` для `uses: actions/*`; reusable — в site-core, pin `@X.Y.Z` |
 
 До шага 3 миграции хост **коммитит** self-contained `.github/workflows/ci.yml`. После — caller с `uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z`; junction на `node_modules` CI не заменит.
 
@@ -135,18 +143,18 @@ Keyword **`[deploy]`** — **только деплой хоста** на VPS, н
 
 При переносе хоста на shared-пакет — по шагам (можно частями, `npm run lint-format` после каждого):
 
-| Шаг | Что сделать |
-|-----|-------------|
-| Зависимость | `"site-core": "file:../site-core"`, `#core/*` imports, `site-core-lint` / `site-core-run` / `site-core-dev` |
-| Biome | `biome.json` → `"extends": ["./node_modules/site-core/config/biome.core.json"]` |
-| Экспорты | Все модули — `export { … }` в конце, имена по алфавиту; см. [`code-style-core.mdc`](code-style-core.mdc) |
-| site-config | `configure-site.js` + `setSiteConfig({ port, routes })` в `app/server/lib/app.js`; client — `src/client/entries/main.js` |
-| app factory | Тонкий `app.js` через `#core/server/lib/http-server.js` и `route-dispatcher.js` |
-| dev | `"dev": "site-core-dev"`, `"preview": "site-core-dev --preview"`; `DEV_PORT` / `PORT` в `.env` или CI; `src/server/main.js` не нужен |
-| postinstall | `"postinstall": "site-core-postinstall"` — symlink dev-конфига + шрифты + **pre-commit hook**; `.gitignore` — по [`config/gitignore.host.example`](../config/gitignore.host.example) |
-| pre-commit | `"pre-commit": ["lint-format", "test"]` в `package.json` — эталон [`config/package.host.example.json`](../config/package.host.example.json); `@fastify/pre-commit` в devDependencies хоста **не нужен** |
-| CI (шаг 3) | Reusable `host-ci.yml` — [`config/ci.host.example.yml`](../config/ci.host.example.yml); pin `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"` |
-| Релиз site-core | bump `version` в `package.json` + push в `main` — job `release` в [`ci.yml`](../.github/workflows/ci.yml); см. «Релиз site-core» |
-| Документация (шаг 3) | В README хоста — одна ссылка на [README site-core](../README.md) (GitHub URL после публикации); без дубля CLI/imports/postinstall |
+| Шаг                  | Что сделать                                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Зависимость          | `"site-core": "file:../site-core"`, `#core/*` imports, `site-core-lint` / `site-core-run` / `site-core-dev`                                                                                             |
+| Biome                | `biome.json` → `"extends": ["./node_modules/site-core/config/biome.core.json"]`                                                                                                                         |
+| Экспорты             | Все модули — `export { … }` в конце, имена по алфавиту; см. [`code-style-core.mdc`](code-style-core.mdc)                                                                                                |
+| site-config          | `configure-site.js` + `setSiteConfig({ port, routes })` в `app/server/lib/app.js`; client — `src/client/entries/main.js`                                                                                |
+| app factory          | Тонкий `app.js` через `#core/server/lib/http-server.js` и `route-dispatcher.js`                                                                                                                         |
+| dev                  | `"dev": "site-core-dev"`, `"preview": "site-core-dev --preview"`; `DEV_PORT` / `PORT` в `.env` или CI; `src/server/main.js` не нужен                                                                    |
+| postinstall          | `"postinstall": "site-core-postinstall"` — symlink dev-конфига + шрифты + **pre-commit hook**; `.gitignore` — по [`config/gitignore.host.example`](../config/gitignore.host.example)                    |
+| pre-commit           | `"pre-commit": ["lint-format", "test"]` в `package.json` — эталон [`config/package.host.example.json`](../config/package.host.example.json); `@fastify/pre-commit` в devDependencies хоста **не нужен** |
+| CI (шаг 3)           | Reusable `host-ci.yml` — [`config/ci.host.example.yml`](../config/ci.host.example.yml); pin `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"`                                           |
+| Релиз site-core      | bump `version` в `package.json` + push в `main` — job `release` в [`ci.yml`](../.github/workflows/ci.yml); см. «Релиз site-core»                                                                        |
+| Документация (шаг 3) | В README хоста — одна ссылка на [README site-core](../README.md) (GitHub URL после публикации); без дубля CLI/imports/postinstall                                                                       |
 
 **Статус:** `efiand.ru` — готов (эталон). `aromachef.ru`, `raskatov.efiand.ru`, `well.efiand.ru` — в очереди.

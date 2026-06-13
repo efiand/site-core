@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"site-core": "git+https://github.com/efiand/site-core.git#1.0.1"
+		"site-core": "git+https://github.com/efiand/site-core.git#1.0.2"
 	},
 	"pre-commit": ["lint-format", "test"],
 	"scripts": {
