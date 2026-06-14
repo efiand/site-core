@@ -2,6 +2,12 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.5] - 2026-06-14
+
+### Fixed
+
+- `tools/resolve-bin.js`: `resolvePackageDir` — fallback на `${pkgName}/package.json` для CLI-only пакетов без `main`/`exports` (например `@biomejs/biome`); pre-commit `lint-format` на Windows больше не падает с «Cannot resolve biome without shell».
+
 ## [1.1.4] - 2026-06-14
 
 ### Fixed

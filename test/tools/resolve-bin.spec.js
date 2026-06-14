@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { resolvePackageDir } from '../../tools/resolve-bin.js';
+import { resolveBinSpawn, resolvePackageDir } from '../../tools/resolve-bin.js';
 
 const coreRoot = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -55,6 +55,21 @@ describe('Инструменты/resolve-bin', () => {
 		} finally {
 			fs.rmSync(hostRoot, { force: true, recursive: true });
 		}
+	});
+
+	test('resolvePackageDir находит @biomejs/biome (CLI-only, без main/exports)', () => {
+		const expected = path.join(coreRoot, 'node_modules/@biomejs/biome');
+
+		assert.ok(fs.existsSync(path.join(expected, 'package.json')));
+		assert.equal(resolvePackageDir('@biomejs/biome', coreRoot), expected);
+	});
+
+	test('resolveBinSpawn находит biome на Windows без shell', () => {
+		const { args, command } = resolveBinSpawn('biome', ['check'], coreRoot);
+
+		assert.equal(command, process.execPath);
+		assert.match(args[0], /[/\\]@biomejs[/\\]biome[/\\]bin[/\\]biome$/);
+		assert.equal(args[1], 'check');
 	});
 
 	test('resolvePackageDir находит fast-xml-validator в hoisted node_modules consumer-проекта', () => {

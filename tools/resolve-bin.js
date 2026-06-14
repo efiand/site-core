@@ -136,7 +136,7 @@ function resolvePackageDir(pkgName, hostCwd) {
 	for (const root of [hostCwd, siteCoreRoot]) {
 		try {
 			const require = createRequire(path.join(root, 'package.json'));
-			const entryPath = require.resolve(pkgName);
+			const entryPath = resolvePackageEntry(require, pkgName);
 			const pkgDir = findPackageRoot(entryPath, pkgName);
 
 			if (pkgDir) {
@@ -148,6 +148,16 @@ function resolvePackageDir(pkgName, hostCwd) {
 	}
 
 	return null;
+}
+
+/** @type {(require: NodeRequire, pkgName: string) => string} */
+function resolvePackageEntry(require, pkgName) {
+	try {
+		return require.resolve(pkgName);
+	} catch {
+		// CLI-only packages (e.g. @biomejs/biome) have no main/exports — resolve via package.json.
+		return require.resolve(`${pkgName}/package.json`);
+	}
 }
 
 export { resolveBin, resolveBinSpawn, resolvePackageDir };
