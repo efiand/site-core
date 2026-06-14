@@ -2,6 +2,13 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.4] - 2026-06-14
+
+### Fixed
+
+- `site-core-upgrade`: распознаёт git pin в формате `github:owner/repo#tag` — не пытается ставить `site-core@latest` из npm registry.
+- `tools/postinstall.js`, `tools/upgrade-site-core-pin.js`: `restoreRolldownWasmLockfile` после `npm install` — optional `@emnapi/*` для rolldown wasm не выпадают из lockfile на Windows.
+
 ## [1.1.3] - 2026-06-14
 
 ### Fixed

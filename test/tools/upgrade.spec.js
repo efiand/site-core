@@ -4,8 +4,9 @@ import { getRegistryPackageNames, isRegistryDependency } from '../../tools/upgra
 import { parseSiteCoreGitPin, replaceSiteCoreWorkflowPins } from '../../tools/upgrade-site-core-pin.js';
 
 describe('Инструменты/upgrade', () => {
-	test('isRegistryDependency пропускает git и file', () => {
+	test('isRegistryDependency пропускает git, github и file', () => {
 		assert.equal(isRegistryDependency('git+https://github.com/efiand/site-core.git#1.0.1'), false);
+		assert.equal(isRegistryDependency('github:efiand/site-core#1.1.3'), false);
 		assert.equal(isRegistryDependency('file:../site-core'), false);
 		assert.equal(isRegistryDependency('^1.0.1'), true);
 		assert.equal(isRegistryDependency('latest'), true);
@@ -26,6 +27,14 @@ describe('Инструменты/upgrade', () => {
 			owner: 'efiand',
 			repo: 'site-core',
 			tag: '1.0.2',
+		});
+	});
+
+	test('parseSiteCoreGitPin разбирает github: shorthand pin', () => {
+		assert.deepEqual(parseSiteCoreGitPin('github:efiand/site-core#1.1.3'), {
+			owner: 'efiand',
+			repo: 'site-core',
+			tag: '1.1.3',
 		});
 	});
 

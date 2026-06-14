@@ -9,7 +9,7 @@ import { restoreRolldownWasmLockfile } from './restore-rolldown-wasm-lockfile.js
 import { upgradeGitHubActions } from './upgrade-github-actions.js';
 import { upgradeSiteCorePin } from './upgrade-site-core-pin.js';
 
-const NON_REGISTRY_SPECIFIER = /^(?:git\+|git:|file:|link:|workspace:|npm:|https?:)/u;
+const NON_REGISTRY_SPECIFIER = /^(?:git\+|git:|github:|file:|link:|workspace:|npm:|https?:)/u;
 
 /** @type {(packages: Record<string, string>) => string[]} */
 function getRegistryPackageNames(packages) {

@@ -1,9 +1,11 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { restoreRolldownWasmLockfile } from './restore-rolldown-wasm-lockfile.js';
 import { fetchLatestReleaseTag } from './upgrade-github-actions.js';
 
 const SITE_CORE_GIT_PIN = /^git\+(?:https|ssh):\/\/(?:git@)?github\.com\/([^/#]+)\/([^/#]+?)(?:\.git)?#([^/\s#]+)$/u;
+const SITE_CORE_GITHUB_SHORTHAND = /^github:([^/#]+)\/([^/#]+)#([^/\s#]+)$/u;
 
 const SITE_CORE_WORKFLOW_USES = /(uses:\s*[\w.-]+\/site-core\/\.github\/workflows\/[\w.-]+\.yml)@[^\s#]+/gu;
 
@@ -13,7 +15,8 @@ function parseSiteCoreGitPin(specifier) {
 		return null;
 	}
 
-	const match = specifier.trim().match(SITE_CORE_GIT_PIN);
+	const trimmed = specifier.trim();
+	const match = trimmed.match(SITE_CORE_GIT_PIN) ?? trimmed.match(SITE_CORE_GITHUB_SHORTHAND);
 
 	if (!match) {
 		return null;
@@ -86,6 +89,7 @@ async function upgradeSiteCorePin(cwd = process.cwd()) {
 
 	console.info(`site-core-upgrade: site-core ${gitPin.tag} → ${latestTag}`);
 	execSync('npm install', { cwd, stdio: 'inherit' });
+	restoreRolldownWasmLockfile(cwd);
 }
 
 export { parseSiteCoreGitPin, replaceSiteCoreWorkflowPins, upgradeSiteCorePin };

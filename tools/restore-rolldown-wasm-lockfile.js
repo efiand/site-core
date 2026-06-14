@@ -6,8 +6,12 @@ import path from 'node:path';
 
 const WASM_BINDING_KEY = 'node_modules/@rolldown/binding-wasm32-wasi';
 
-/** @type {(name: string, version: string) => PackageLockEntry} */
-function buildLockEntry(name, version) {
+/** @type {(name: string, version: string, sourceEntry?: PackageLockEntry) => PackageLockEntry} */
+function buildLockEntry(name, version, sourceEntry) {
+	if (sourceEntry?.resolved && sourceEntry?.integrity) {
+		return buildLockEntryFromSource(version, sourceEntry);
+	}
+
 	const meta = fetchPackageMeta(name, version);
 	const { dependencies } = meta;
 
@@ -23,13 +27,29 @@ function buildLockEntry(name, version) {
 	];
 
 	if (dependencies) {
+		fields.push(['dependencies', sortDependencyRecord(dependencies)]);
+	}
+
+	return Object.fromEntries(fields);
+}
+
+/** @type {(version: string, sourceEntry: PackageLockEntry) => PackageLockEntry} */
+function buildLockEntryFromSource(version, sourceEntry) {
+	/** @type {[string, unknown][]} */
+	const fields = [
+		['version', version],
+		['resolved', sourceEntry.resolved],
+		['integrity', sourceEntry.integrity],
+		['dev', true],
+		['license', sourceEntry.license || 'MIT'],
+		['optional', true],
+		['peer', true],
+	];
+
+	if (sourceEntry.dependencies && typeof sourceEntry.dependencies === 'object') {
 		fields.push([
 			'dependencies',
-			Object.fromEntries(
-				Object.keys(dependencies)
-					.sort()
-					.map((dependencyName) => [dependencyName, dependencies[dependencyName]]),
-			),
+			sortDependencyRecord(/** @type {Record<string, string>} */ (sourceEntry.dependencies)),
 		]);
 	}
 
@@ -109,10 +129,20 @@ function restoreRolldownWasmLockfile(hostCwd = process.cwd()) {
 			continue;
 		}
 
-		lock.packages = insertPackageInKeyOrder(lock.packages, key, buildLockEntry(packageName, version));
+		const nested = lock.packages[`${WASM_BINDING_KEY}/node_modules/${packageName}`];
+		lock.packages = insertPackageInKeyOrder(lock.packages, key, buildLockEntry(packageName, version, nested));
 	}
 
 	writeFileSync(packageLockPath, `${JSON.stringify(lock, null, '\t')}\n`);
+}
+
+/** @type {(dependencies: Record<string, string>) => Record<string, string>} */
+function sortDependencyRecord(dependencies) {
+	return Object.fromEntries(
+		Object.keys(dependencies)
+			.sort()
+			.map((dependencyName) => [dependencyName, dependencies[dependencyName]]),
+	);
 }
 
 export { restoreRolldownWasmLockfile };
