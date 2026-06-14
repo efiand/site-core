@@ -188,7 +188,7 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 | `site-core-build-static-pages` | HTML из `getSiteConfig().buildPages` через running app (`SITE_CORE_APP`, cwd хоста)                     |
 | `site-core-build-vendors`      | tinymce vendors (Tier 2)                                                                                |
 | `site-core-dump`               | DB dump CLI (Tier 2)                                                                                    |
-| `site-core-upgrade`            | `npm run upgrade` — deps хоста из `process.cwd()`, browserslist, rolldown wasm lockfile, GitHub Actions |
+| `site-core-upgrade`            | `npm run upgrade` — bump git pin `site-core` + reusable `uses:@tag`, registry deps, browserslist, rolldown wasm lockfile, GitHub Actions |
 
 При `"site-core": "file:../site-core"` toolchain-пакеты не hoisting-ятся в хост — в тестах хоста: `site-core-run node --import site-core/tools/register-vendors.js --test …`.
 

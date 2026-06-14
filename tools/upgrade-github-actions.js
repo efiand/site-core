@@ -119,4 +119,4 @@ async function upgradeGitHubActions(workflowsDir = join(process.cwd(), '.github'
 	}
 }
 
-export { upgradeGitHubActions };
+export { collectActions, fetchLatestReleaseTag, formatActionVersion, replaceActionVersion, upgradeGitHubActions };

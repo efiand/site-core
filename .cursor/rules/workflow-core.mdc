@@ -50,15 +50,15 @@ Symlink `current` на хостинге — обычный `ln -sfn` в shell п
 
 | Где запускать                     | Что обновляется                                                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **`npm run upgrade` в site-core** | `.github/workflows/` site-core (`ci.yml`, `host-ci.yml`, `deploy-static-releases.yml`, …)                          |
-| **`npm run upgrade` в хосте**     | `.github/workflows/` **хоста** — только если есть локальные workflow с `uses:` (self-contained `ci.yml` до шага 3) |
+| **`npm run upgrade` в site-core** | `.github/workflows/` site-core (`ci.yml`, `host-ci.yml`, …) |
+| **`npm run upgrade` в consumer**  | bump git pin `site-core` + `@X.Y.Z` в reusable `uses:`; registry deps; browserslist; rolldown wasm lockfile; локальные `uses: actions/*` |
 
 - Официальные actions (`actions/*`) — major-тег последнего релиза (`@v6`, не `@v6.0.3`).
 - Сторонние actions — полный тег релиза (`@v1.2.5`).
 - JavaScript-actions должны быть на Node.js 24 (`actions/checkout` и `actions/setup-node` — `@v6+`); composite-actions (`appleboy/*` и т.п.) — последний релиз.
 - После обновления в логе CI не должно быть «Node.js 20 actions are deprecated».
 - Ручная правка workflow — только если action не на GitHub Releases или нужен pin ниже latest.
-- **После шага 3:** actions в reusable workflows — через `npm run upgrade` **в site-core** + pin `@X.Y.Z` в caller; хостовый upgrade — только оставшиеся локальные workflow.
+- **После шага 3:** reusable workflows — pin `@X.Y.Z` в caller; **`npm run upgrade` в consumer** поднимает pin и `uses: …/site-core/…@` по latest GitHub Release.
 - Скрипты `tools/upgrade.js`, `tools/restore-rolldown-wasm-lockfile.js` и `tools/upgrade-github-actions.js` — по разделу «Порядок в модуле» в [`code-style-core.mdc`](code-style-core.mdc).
 - **YAML anchors / merge keys** (`<<: *ref`) в workflow **не поддерживаются** GitHub Actions — общую логику выносим в **reusable workflows** (`workflow_call`).
 

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { restoreRolldownWasmLockfile } from './restore-rolldown-wasm-lockfile.js';
 import { upgradeGitHubActions } from './upgrade-github-actions.js';
+import { upgradeSiteCorePin } from './upgrade-site-core-pin.js';
 
 const NON_REGISTRY_SPECIFIER = /^(?:git\+|git:|file:|link:|workspace:|npm:|https?:)/u;
 
@@ -24,6 +25,7 @@ function isRegistryDependency(version) {
 
 /** @type {(cwd?: string) => Promise<void>} */
 async function runUpgrade(cwd = process.cwd()) {
+	await upgradeSiteCorePin(cwd);
 	upgradeRegistryDependencies(cwd);
 	execSync('npx update-browserslist-db@latest --yes', { cwd, stdio: 'inherit' });
 	restoreRolldownWasmLockfile(cwd);

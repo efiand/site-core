@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { getRegistryPackageNames, isRegistryDependency } from '../../tools/upgrade.js';
+import { parseSiteCoreGitPin, replaceSiteCoreWorkflowPins } from '../../tools/upgrade-site-core-pin.js';
 
 describe('Инструменты/upgrade', () => {
 	test('isRegistryDependency пропускает git и file', () => {
@@ -18,5 +19,24 @@ describe('Инструменты/upgrade', () => {
 			}),
 			['@biomejs/biome'],
 		);
+	});
+
+	test('parseSiteCoreGitPin разбирает git+https pin', () => {
+		assert.deepEqual(parseSiteCoreGitPin('git+https://github.com/efiand/site-core.git#1.0.2'), {
+			owner: 'efiand',
+			repo: 'site-core',
+			tag: '1.0.2',
+		});
+	});
+
+	test('replaceSiteCoreWorkflowPins обновляет reusable site-core workflows', () => {
+		const source = [
+			'uses: efiand/site-core/.github/workflows/host-ci.yml@1.0.2',
+			'uses: efiand/site-core/.github/workflows/deploy-static-releases.yml@1.0.2',
+		].join('\n');
+		const { changed, content } = replaceSiteCoreWorkflowPins(source, '1.1.0');
+
+		assert.equal(changed, true);
+		assert.match(content, /@1\.1\.0/g);
 	});
 });

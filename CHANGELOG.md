@@ -2,6 +2,12 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.1] - 2026-06-14
+
+### Added
+
+- `tools/upgrade-site-core-pin.js` — `site-core-upgrade` поднимает git pin `site-core` и `uses: …/site-core/.github/workflows/…@tag` до latest GitHub Release.
+
 ## [1.1.0] - 2026-06-14
 
 ### Changed
