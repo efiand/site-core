@@ -2,6 +2,16 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.8] - 2026-06-14
+
+### Added
+
+- `STATIC_MIME_TYPES`: `.webp` → `image/webp` (отдача статики в dev/preview).
+
+### Changed
+
+- Эталон git pin хоста — `github:<org>/site-core#X.Y.Z` в README и `package.host.example.json`; `git+https://…#X.Y.Z` по-прежнему поддерживается `site-core-upgrade`.
+
 ## [1.1.7] - 2026-06-14
 
 ### Added

@@ -8,6 +8,7 @@ const STATIC_MIME_TYPES = {
 	'.svg': 'image/svg+xml; charset=utf-8',
 	'.txt': 'plain/text; charset=utf-8',
 	'.webmanifest': 'application/json; charset=utf-8',
+	'.webp': 'image/webp',
 	'.woff2': 'font/woff2',
 };
 

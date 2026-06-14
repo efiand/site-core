@@ -6,4 +6,9 @@ describe('Общее/static-mime-types', () => {
 	test('staticExtensions совпадает с ключами STATIC_MIME_TYPES', () => {
 		assert.deepStrictEqual(staticExtensions, new Set(Object.keys(STATIC_MIME_TYPES)));
 	});
+
+	test('webp отдаётся как image/webp', () => {
+		assert.strictEqual(STATIC_MIME_TYPES['.webp'], 'image/webp');
+		assert.ok(staticExtensions.has('.webp'));
+	});
 });

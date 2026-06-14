@@ -12,11 +12,13 @@ Shared-библиотека для vanilla JS MPA/fullstack consumer-проек�
 }
 ```
 
-**CI / production:**
+**CI / production** (предпочитаемый pin — npm `github:` shorthand):
 
 ```json
-"site-core": "git+https://github.com/<org>/site-core.git#1.0.0"
+"site-core": "github:<org>/site-core#1.0.0"
 ```
+
+Эквивалент `git+https://github.com/<org>/site-core.git#1.0.0`; `site-core-upgrade` понимает оба формата. Эталон pin в [`config/package.host.example.json`](config/package.host.example.json) (`dependencies.site-core`).
 
 ## Импорты
 

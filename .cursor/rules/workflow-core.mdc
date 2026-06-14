@@ -104,11 +104,12 @@ Deploy-static-releases (раннер GitHub): download artifact → scp → ssh.
 
 Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть** — skip, CI зелёный. Auto-bump нет.
 
-Хосты pin: `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"` и `@X.Y.Z` в reusable `uses:`.
+Хосты pin: `"site-core": "github:<org>/site-core#X.Y.Z"` (предпочитаемый; эквивалент `git+https://…#X.Y.Z`) и `@X.Y.Z` в reusable `uses:`.
 
 ### CHANGELOG.md
 
 - Файл в **корне site-core**; формат [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — SemVer.
+- **Перед bump `version`** — `git status` и `git diff` (staged + unstaged): новая секция описывает только изменения, которые войдут в релизный коммит; не переносить в CHANGELOG то, что уже в предыдущем релизе на `main`.
 - При bump `version` — новая секция `## [X.Y.Z] - YYYY-MM-DD` **сразу под** вводным абзацем (сверху, новые версии выше старых).
 - Категории: `Added`, `Changed`, `Fixed`, `Removed` — только непустые; пункты для **потребителей** (хосты, bin, breaking, заметное поведение CLI), без перечисления каждого внутреннего рефакторинга.
 - Запись в CHANGELOG — **в том же коммите/PR**, что и bump `version`; job `release` файл не генерирует.
@@ -182,6 +183,6 @@ site-core **не знает** конкретных репозиториев-са
 | package.json (legacy) | Удалить `"main"`, `"name"` (не в [`package.host.example.json`](../config/package.host.example.json)); удалить `app/server/main.js` — обёртка для `node .`, site-core её не использует                         |
 | postinstall          | `"postinstall": "site-core-postinstall"` — symlink dev-конфига + шрифты + **pre-commit hook**; `.gitignore` — по [`config/gitignore.host.example`](../config/gitignore.host.example)                    |
 | pre-commit           | `"pre-commit": ["lint-format", "test"]` в `package.json` — эталон [`config/package.host.example.json`](../config/package.host.example.json); `@fastify/pre-commit` в devDependencies хоста **не нужен** |
-| CI (шаг 3)           | Reusable `host-ci.yml` — [`config/ci.host.example.yml`](../config/ci.host.example.yml); pin `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"`                                           |
+| CI (шаг 3)           | Reusable `host-ci.yml` — [`config/ci.host.example.yml`](../config/ci.host.example.yml); pin `"site-core": "github:<org>/site-core#X.Y.Z"`                                           |
 | Релиз site-core      | bump `version` в `package.json` + push в `main` — job `release` в [`ci.yml`](../.github/workflows/ci.yml); см. «Релиз site-core»                                                                        |
 | Документация (шаг 3) | В README consumer-проекта — одна ссылка на [README site-core](../README.md) (GitHub URL после публикации); без дубля CLI/imports/postinstall                                                                       |
