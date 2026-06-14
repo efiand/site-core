@@ -27,7 +27,11 @@ function isRegistryDependency(version) {
 async function runUpgrade(cwd = process.cwd()) {
 	await upgradeSiteCorePin(cwd);
 	upgradeRegistryDependencies(cwd);
-	execSync('npx update-browserslist-db@latest --yes', { cwd, stdio: 'inherit' });
+	execSync('npx update-browserslist-db@latest --yes', {
+		cwd,
+		env: { ...process.env, BROWSERSLIST_IGNORE_OLD_DATA: 'true' },
+		stdio: 'inherit',
+	});
 	restoreRolldownWasmLockfile(cwd);
 	await upgradeGitHubActions();
 }

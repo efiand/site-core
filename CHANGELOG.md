@@ -2,6 +2,12 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.3] - 2026-06-14
+
+### Fixed
+
+- `tools/upgrade.js`: `BROWSERSLIST_IGNORE_OLD_DATA` при вызове `update-browserslist-db` — убирает ложное «N months old» при уже актуальной npm-версии `caniuse-lite`.
+
 ## [1.1.2] - 2026-06-14
 
 ### Fixed
