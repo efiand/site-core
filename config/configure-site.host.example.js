@@ -12,11 +12,14 @@ setSiteConfig({
 	yandexMetrikaId: 12345678,
 });
 
+// privacyRevisionDate: '2026-06-09', // SiteDatetimeInput — тот же формат, что date в renderTimeTag
+
 // app/server/lib/app.js — после import { routes } from '#server/routes/index.js':
 // setSiteConfig({ routes });
 //
 // Порт — только из окружения: DEV_PORT (dev, site-core-dev), PORT (preview, prod, CI, systemd).
-// Consumer с MySQL:
+// author: 'Author Name',
+// pubDate: new Date().toISOString(),
 // hasDb: true,
 //
 // Служебные страницы — только если зарегистрированы в routes:

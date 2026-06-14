@@ -22,7 +22,7 @@ alwaysApply: true
 
 # Кеш-бастинг (хосты)
 
-Реестр `version` в `app/common/constants.js` хоста + `buildAssetQuery()` из [`common/lib/asset-version.js`](common/lib/asset-version.js) → `?v=N&core=X.Y.Z`.
+Реестр `version` в `app/common/configure-site.js` хоста + `buildAssetQuery()` из [`common/lib/asset-version.js`](common/lib/asset-version.js) → `?v=N&core=X.Y.Z`.
 
 - Если в текущих правках (`git diff HEAD`) изменились связанные файлы — увеличь соответствующее свойство `version` на 1.
 - Связи по умолчанию: `version.CSS` → `src/client/css/**`, `postcss.config.js`; `version.JS` → `src/client/**/*.js`.
@@ -93,14 +93,14 @@ alwaysApply: true
 
 # Архитектура SSR (хосты)
 
-- `app/common/` — константы, утилиты без Node-only deps, HTML-шаблоны (`templates/`).
+- `app/common/` — константы, утилиты без Node-only deps, HTML-шаблоны (`templates/`), статический контент страниц (`data/`).
 - `app/server/` — маршруты (`routes/`), серверная логика (`lib/`). Node/npm-only утилиты — в `app/server/lib/`, не в `app/common/lib/`.
 - `src/client/` — CSS (PostCSS, BEM в `css/blocks/`), клиентские entry (`entries/*.js`).
 - Импорты хоста: `#common/*`, `#server/*`, `#client/*`; shared — `#core/*` (см. `package.json` → `imports`).
 - Роуты — объекты с HTTP-методами; хендлер возвращает `{ page }` или `{ template, statusCode?, contentType? }`.
 - Дефолты ответа — middleware в [`route-dispatcher.js`](server/lib/route-dispatcher.js) (`createStandardRouteDispatcher`): `statusCode` 200, `contentType` `text/html; charset=utf-8`. Указывай только отличия.
 - `{ page }` — HTML-страница: middleware вызывает `renderPage` и подставляет дефолтный `contentType` / `statusCode`.
-- **Страница:** [`createRenderPage`](common/templates/page.js) в core — `<html>`, `<head>`, assets, OG; [`renderFaviconLinks`](common/templates/favicon-links.js); [`renderFontPreloads`](common/templates/font-preloads.js); `<body>` + [`renderYandexMetrika`](common/templates/yandex-metrika.js) + **`renderLayout` хоста**. Хост: `app/server/lib/app.js` — `createRenderPage({ renderLayout, … })`, `createApp`, export `renderPage`. `faviconPrefix` — в `createRenderPage` (дефолт) или в `renderPage({ faviconPrefix, … })`.
+- **Страница:** [`createRenderPage`](common/templates/page.js) в core — `<html>`, `<head>`, assets, OG; [`renderFaviconLinks`](common/templates/favicon-links.js); [`renderFontPreloads`](common/templates/font-preloads.js); `<body>` + [`renderYandexMetrika`](common/templates/yandex-metrika.js) + **`renderLayout` хоста**. Хост: `app/server/lib/app.js` — `createRenderPage({ renderLayout, … })`, `createApp`, export `renderPage`. `faviconPrefix` — в `createRenderPage` (дефолт) или в `renderPage({ faviconPrefix, … })`. `author` / `publishedTime` — из `getSiteConfig().author` и `LayoutData` (`name="author"`; для `ogType: "article"` — `article:author`, `article:published_time`, article `prefix`); `publishedTime` передаёт хост. При `articleWork` / `articleSeries` — JSON-LD и `article:publisher` через [`renderArticleHead`](common/templates/article-work-schema.js); хост не дублирует схему в `headTemplate`. [`resolveSourcePublishedTime`](common/lib/resolve-source-published-time.js) — опциональная утилита хоста (mtime файла в prod, не в core layout).
 - **`renderLayout` хоста** — только разметка **внутри** `<body>` (обёртка `.layout`, nav и т.п.); **не** рендерит `<body>`, `<html>`, Metrika.
 - **Favicon / PWA** (`public/`, одинаковый набор файлов у consumer-проектов): `favicon-96x96.png`, `favicon.svg`, `apple-touch-icon.png` (180×180), `site.webmanifest`. Пути — [`renderFaviconLinks`](common/templates/favicon-links.js); префикс в `createRenderPage({ faviconPrefix })` (по умолчанию `''`; для зеркала с path-prefix — например `/manuscript`).
 - **Шрифты:** исходники — `public/fonts/*.woff2` (в git хоста). [`site-core-postinstall`](tools/postinstall.js) сканирует каталог, переименовывает в `{family-slug}-{weight}[-italic].woff2`, генерирует gitignored `src/client/css/common/fonts.css` (`@font-face`) и `common/generated/fonts.js` (`export const fonts`) в **site-core**; [`page.js`](common/templates/page.js) импортирует массив → [`renderFontPreloads`](common/templates/font-preloads.js). После добавления/замены файлов — `npm run postinstall` или `npm run build`. Override — `createRenderPage({ fonts: […] })` (тесты).
@@ -109,7 +109,7 @@ alwaysApply: true
 - Dev: `npm run dev` (`site-core-dev` — dotenvx, nodemon и dev-server из site-core; `createApp` хоста подгружается динамически из `app/server/lib/app.js`).
 - **Metrika:** SSR `<noscript>` — в `<body>` через [`createRenderPage`](common/templates/page.js); client — `src/client/entries/main.js` (`configure-site` + [`initYandexMetrika`](client/lib/init-yandex-metrika.js)) → bundle `public/bundles/main.js`; script-тег — [`renderPageAssets`](common/templates/page-assets.js) → [`renderYandexMetrikaScript`](common/templates/yandex-metrika-script.js). Внешние скрипты — [`loadScript`](client/lib/load-script.js).
 - **`configure-site.js`:** side-effect init — в хосте: `app/server/lib/app.js` (`configure-site`, `setSiteConfig({ routes })`); client — `src/client/entries/main.js`. `port`/`host`/`routes` — [`getSiteConfig()`](common/lib/site-config.js); порт только из `DEV_PORT` (dev) или `PORT` (preview/prod/systemd).
-- **HTTP-сервер:** [`createHttpServer`](server/lib/http-server.js) — `port?`, `renderPage`, `renderErrorPage`, `middleware?`; внутри — [`createStandardRouteDispatcher`](server/lib/route-dispatcher.js) из `getSiteConfig().host` и `.routes`. [`closeApp`](server/lib/http-server.js), `getAppHost`, `waitForApp`; хостовый `app.js` — только `createApp`.
+- **HTTP-сервер:** [`createHttpServer`](server/lib/http-server.js) — `port?`, `renderPage`, `renderErrorPage`, `middleware?`; внутри — [`createStandardRouteDispatcher`](server/lib/route-dispatcher.js) (`resolveRequest?`, [`resolvePathnamePrefix`](server/lib/route-dispatcher.js) для path-зеркал). [`closeApp`](server/lib/http-server.js), `getAppHost`, `waitForApp`; хостовый `app.js` — только `createApp`.
 
 # Линтинг и типы
 
@@ -157,7 +157,8 @@ alwaysApply: true
 ```typescript
 declare global {
 	interface LayoutData {
-		isManuscript?: boolean;
+		/** Пример host-only поля; у raskatov — `isManuscript`, у efiand — свои при необходимости */
+		isFeatureEnabled?: boolean;
 	}
 }
 export {};
@@ -169,7 +170,7 @@ TypeScript смержит декларации с core. То же для `RouteP
 
 **`get*` / `set*`:** `get*` — только чтение, без побочных эффектов; `set*` — только запись, `void` (после патча — отдельный `get*`).
 
-[`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) — `baseHost` (хост задаёт в `configure-site.js`; `baseUrl` = `https://${baseHost}` вычисляется в сеттере), `email`, `hasDb`, `isDev`, `projectDescription`, `projectTitle`, `version`, `yandexMetrikaId`, `publicPages` (`Set`), `staticPages` / `buildPages` (`Set`, вычисляются); init — `app/common/configure-site.js`
+[`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) — `author`, `baseHost` (хост задаёт в `configure-site.js`; `baseUrl` = `https://${baseHost}` вычисляется в сеттере), `email`, `hasDb`, `isDev`, `projectDescription`, `projectTitle`, `privacyRevisionDate` (`SiteDatetimeInput`, тот же формат, что `date` в [`renderTimeTag`](common/templates/time.js)), `pubDate`, `version`, `yandexMetrikaId`, `publicPages` (`Set`), `staticPages` / `buildPages` (`Set`, вычисляются); init — `app/common/configure-site.js`
 
 `og:site_name` в [`createRenderPage`](common/templates/page.js) — `baseHost`, иначе `projectTitle`.
 

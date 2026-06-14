@@ -9,12 +9,6 @@ type CreateHttpServerOptions = {
 	renderPage: (page: LayoutData) => Promise<string>;
 };
 
-type CreateStandardRouteDispatcherOptions = {
-	isQuiet?: boolean;
-	renderErrorPage: (statusCode: number, message: string) => string;
-	renderPage: (page: LayoutData) => Promise<string>;
-};
-
 type CookieBody = {
 	domain?: string;
 	expires?: Date;
@@ -45,9 +39,23 @@ type CreateAppOptions = {
 	port?: number;
 };
 
+type CreateStandardRouteDispatcherOptions = {
+	isQuiet?: boolean;
+	renderErrorPage: (statusCode: number, message: string) => string;
+	renderPage: (page: LayoutData) => Promise<string>;
+	resolveRequest?: ResolveRequest;
+};
+
 type DbPlaceholder = DbPlaceholder[] | null | number | string;
 
 type ReqBody = Record<string, unknown>;
+
+type ResolveRequest = (url: URL) => ResolvedRequest;
+
+type ResolvedRequest = {
+	context?: Record<string, unknown>;
+	pathname: string;
+};
 
 type Route = Record<string, RouteMethod>;
 

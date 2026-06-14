@@ -2,6 +2,33 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.7] - 2026-06-14
+
+### Added
+
+- `buildHtmlPrefix`, `DEFAULT_HTML_PREFIX`, `OGP_PREFIX_*` — сборка атрибута `prefix` для Open Graph.
+- `createSitemapXmlRoute(pages?)` — роут `/sitemap.xml`; `pages` как у `renderSitemap` или `() => …` для выборки на запрос.
+- `createStandardRouteDispatcher({ resolveRequest })` — контекст запроса (`pathname`, `context`) для зеркал и прочих префиксов.
+- `getSiteConfig` / `setSiteConfig`: опциональные поля `author`, `privacyRevisionDate`, `pubDate` для авторских article-сайтов и даты редакции политики.
+- `createRenderPage`: при непустом `author` — `<meta name="author">`; для `ogType: "article"` — `article:author`, `article:published_time` из `LayoutData.publishedTime` (хост), article `prefix`.
+- `renderArticleHead` — JSON-LD home/work при `LayoutData.articleWork` / `articleSeries` (`dateCreated` / `datePublished`), `article:publisher`, `copyright`.
+- `resolveSourcePublishedTime` — утилита хоста: dev → `fallback`, prod → mtime файла (sitemap и `publishedTime` на усмотрение хоста).
+- `normalizeDatetime` — общий формат `SiteDatetimeInput` (`YYYY-MM-DD`, ISO с временем, MySQL `YYYY-MM-DD HH:mm:ss`) для `renderTimeTag` и sitemap `lastmod` у `/privacy`.
+- `renderTimeTag` — `<time>` с `datetime` из `date` (`SiteDatetimeInput`) и текстом из `text` или `DD.MM.YYYY`.
+- `registerPrivacyRouteTests`, `assertPrivacyPolicyPage` — базовые проверки роута `/privacy` для хостов.
+- `renderSitemap`, `renderSitemapUrl` — сборка XML sitemap из `SitemapPage[]`.
+- `resolvePathnamePrefix` — снятие path-префикса (`/manuscript` → `/`, `/manuscript/mad/1` → `/mad/1`).
+- `useIntegrationFixture`, `getIntegrationBuildPages`, `registerMarkupValidationTests` — shared HTTP-fixture и блок «Разметка» для integration-тестов хостов.
+- `validateOgMarkup` / `lintOgMarkup` — программная проверка Open Graph (без внешних OG-пакетов); `ARTICLE_OGP_PREFIX`.
+- Хелперы `test-helpers/og-markup.js`: `assertSingleOgType`, `assertHtmlPrefixIncludes`, `getHtmlPrefixAttribute`, `getOgTypeValues`.
+
+### Changed
+
+- `biome.core.json`: `noSvgWithoutTitle` off для `src/client/icons/**` (CSS-иконки хостов).
+- `hyphenateRu`: fallback на nested `hyphen` при git/file pin site-core; тесты перенесены в core.
+- `renderSitemap` принимает `Iterable<string>` (пути → `loc`/`lastmod` из `getSiteConfig()`) или `SitemapPage[]`; без аргумента — `publicPages`; для URL, оканчивающихся на `/privacy`, `lastmod` — `privacyRevisionDate` (если хост не передал свой).
+- `renderUrlMeta`: служебные пути `/__/…` без `og:url` и `canonical` (как у Metrika).
+
 ## [1.1.6] - 2026-06-14
 
 ### Added

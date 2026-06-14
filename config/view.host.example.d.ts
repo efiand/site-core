@@ -1,7 +1,7 @@
 declare global {
 	interface LayoutData {
-		/** Пример: поле только этого хоста */
-		isManuscript?: boolean;
+		/** Пример host-only поля; не копируйте `isManuscript` — это домен raskatov */
+		isFeatureEnabled?: boolean;
 	}
 }
 

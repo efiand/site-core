@@ -8,7 +8,15 @@ describe('Общее/site-config/Страницы', () => {
 		delete process.env.DEV_PORT;
 		delete process.env.PORT;
 		delete process.env.PREVIEW;
-		setSiteConfig({ baseHost: '', hasDb: false, publicPages: [], routes: {} });
+		setSiteConfig({
+			author: '',
+			baseHost: '',
+			hasDb: false,
+			privacyRevisionDate: '',
+			pubDate: '',
+			publicPages: [],
+			routes: {},
+		});
 	});
 
 	test('Берёт PORT из env и формирует host', () => {
@@ -82,6 +90,18 @@ describe('Общее/site-config/Страницы', () => {
 
 	test('hasDb по умолчанию false', () => {
 		assert.equal(getSiteConfig().hasDb, false);
+	});
+
+	test('author и pubDate по умолчанию пустые', () => {
+		assert.equal(getSiteConfig().author, '');
+		assert.equal(getSiteConfig().pubDate, '');
+	});
+
+	test('Подмешивает author и pubDate из configure-site', () => {
+		setSiteConfig({ author: 'Автор', pubDate: '2026-06-14T00:00:00.000Z' });
+
+		assert.equal(getSiteConfig().author, 'Автор');
+		assert.equal(getSiteConfig().pubDate, '2026-06-14T00:00:00.000Z');
 	});
 
 	test('Подмешивает hasDb из configure-site', () => {

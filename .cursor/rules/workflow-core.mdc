@@ -97,9 +97,10 @@ Deploy-static-releases (раннер GitHub): download artifact → scp → ssh.
 | Шаг | Действие                                                                  |
 | --- | ------------------------------------------------------------------------- |
 | 1   | Поднять `"version"` в `package.json` (semver вручную)                   |
-| 2   | Дописать секцию в [`CHANGELOG.md`](../CHANGELOG.md) (см. ниже)            |
-| 3   | Push в `main`                                                             |
-| 4   | CI: lint + test → job `release` в [`ci.yml`](../.github/workflows/ci.yml) |
+| 2   | Синхронизировать `"version"` в `package-lock.json` (см. ниже)           |
+| 3   | Дописать секцию в [`CHANGELOG.md`](../CHANGELOG.md) (см. ниже)            |
+| 4   | Push в `main`                                                             |
+| 5   | CI: lint + test → job `release` в [`ci.yml`](../.github/workflows/ci.yml) |
 
 Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть** — skip, CI зелёный. Auto-bump нет.
 
@@ -111,6 +112,12 @@ Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть
 - При bump `version` — новая секция `## [X.Y.Z] - YYYY-MM-DD` **сразу под** вводным абзацем (сверху, новые версии выше старых).
 - Категории: `Added`, `Changed`, `Fixed`, `Removed` — только непустые; пункты для **потребителей** (хосты, bin, breaking, заметное поведение CLI), без перечисления каждого внутреннего рефакторинга.
 - Запись в CHANGELOG — **в том же коммите/PR**, что и bump `version`; job `release` файл не генерирует.
+
+### package-lock.json
+
+- Поле `"version"` в lockfile — метаданные корневого пакета (копия из `package.json`), на `npm ci` / резолв deps не влияет.
+- При изменении `"version"` в `package.json` (**site-core** и **хосты**, если поле есть) — в том же коммите выровнять корневое `"version"` и `packages[""].version` в `package-lock.json` (то же значение). Достаточно `npm install` без смены зависимостей или правка двух полей вручную.
+- Не трогать `"version"` у записей зависимостей в `packages` — только корень проекта.
 
 ## Commit keywords в CI consumer-проекта
 

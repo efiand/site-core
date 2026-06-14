@@ -1,15 +1,20 @@
 interface LayoutData {
+	author?: string;
 	description?: string;
 	faviconPrefix?: string;
 	headTemplate?: string;
 	heading?: string;
 	isDev?: boolean;
+	articleSeries?: ArticleSeriesItem[];
+	articleWork?: ArticleWorkMeta;
 	ogImage?: string;
 	ogImageHeight?: string | number;
 	ogImageWidth?: string | number;
 	ogPathname?: string;
+	ogType?: string;
 	pageTemplate?: string;
 	pathname?: string;
+	publishedTime?: string;
 	title?: string;
 	webAppTitle?: string;
 }

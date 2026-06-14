@@ -4,6 +4,7 @@ const SERVICE_PAGES = new Set(['/__/404', '/__/update', '/404.html']);
 
 /** @type {SiteConfigState} */
 const state = {
+	author: '',
 	baseHost: '',
 	baseUrl: '',
 	buildPages: new Set(),
@@ -12,8 +13,10 @@ const state = {
 	host: '',
 	isDev: false,
 	port: 0,
+	privacyRevisionDate: '',
 	projectDescription: '',
 	projectTitle: '',
+	pubDate: '',
 	publicPages: new Set(),
 	routes: null,
 	staticPages: new Set(),

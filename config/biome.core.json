@@ -99,6 +99,16 @@
 			}
 		},
 		{
+			"includes": ["src/client/icons/**"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noSvgWithoutTitle": "off"
+					}
+				}
+			}
+		},
+		{
 			"includes": ["types/**/*.d.ts"],
 			"linter": {
 				"rules": {

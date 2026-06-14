@@ -4,18 +4,21 @@ type SiteConfigVersion = {
 };
 
 type SiteConfigState = {
+	author: string;
 	baseHost: string;
 	baseUrl: string;
+	buildPages: Set<string>;
 	email: string;
 	hasDb: boolean;
 	host: string;
 	isDev: boolean;
 	port: number;
+	privacyRevisionDate: SiteDatetimeInput;
 	projectDescription: string;
 	projectTitle: string;
+	pubDate: string;
 	publicPages: Set<string>;
 	routes: Record<string, Route> | null;
-	buildPages: Set<string>;
 	staticPages: Set<string>;
 	version: SiteConfigVersion;
 	yandexMetrikaId: number;

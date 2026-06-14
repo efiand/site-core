@@ -3,9 +3,11 @@ import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { getRequestBody } from '#core/server/lib/request.js';
 
 /** @type {(options: CreateStandardRouteDispatcherOptions) => ServerMiddleware} */
-function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, renderPage }) {
-	/** @type {(error: unknown, url: URL) => Promise<{ statusCode: number; template: string }>} */
-	async function handleError(error, { href, pathname }) {
+function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, renderPage, resolveRequest }) {
+	const getRequest = resolveRequest ?? defaultResolveRequest;
+
+	/** @type {(error: unknown, url: URL, pathname: string, context: Record<string, unknown>) => Promise<{ statusCode: number; template: string }>} */
+	async function handleError(error, url, pathname, context) {
 		let message = 'На сервере произошла ошибка.';
 		let statusCode = 500;
 
@@ -18,16 +20,16 @@ function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, rende
 			}
 		}
 
-		if (!isQuiet && !pathname?.startsWith('/__') && statusCode >= 500) {
-			log.error(`❌ [HTTP ERROR ${statusCode} | ${href}]`, error);
+		if (!isQuiet && !url.pathname?.startsWith('/__') && statusCode >= 500) {
+			log.error(`❌ [HTTP ERROR ${statusCode} | ${url.href}]`, error);
 		}
 
-		const heading = `Ошибка ${statusCode}`;
 		const template = await renderPage({
 			description: 'Страница ошибок.',
-			heading,
+			heading: `Ошибка ${statusCode}`,
 			pageTemplate: renderErrorPage(statusCode, message),
 			pathname,
+			...context,
 		});
 
 		return { statusCode, template };
@@ -43,7 +45,7 @@ function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, rende
 
 		const { method = 'GET' } = req;
 		const url = new URL(req.url ?? '/', host || 'http://localhost');
-		const { pathname } = url;
+		const { context = {}, pathname } = getRequest(url);
 		const { id, routeKey } = resolveRouteKey(pathname);
 		const route = routes[routeKey];
 
@@ -65,14 +67,14 @@ function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, rende
 			}
 
 			const body = await getRequestBody(req);
-			const routeData = await route[method]({ body, id, isAuthorized: false, req, res });
+			const routeData = await route[method]({ body, id, isAuthorized: false, req, res, ...context });
 			({ contentType = 'text/html; charset=utf-8', statusCode = 200, template = '' } = routeData);
 
 			if (routeData.page) {
-				template = await renderPage({ ...routeData.page, pathname });
+				template = await renderPage({ ...routeData.page, ...context, pathname });
 			}
 		} catch (error) {
-			({ statusCode, template } = await handleError(error, url));
+			({ statusCode, template } = await handleError(error, url, pathname, context));
 		}
 
 		res.setHeader('Content-Type', contentType);
@@ -81,6 +83,24 @@ function createStandardRouteDispatcher({ isQuiet = false, renderErrorPage, rende
 	}
 
 	return dispatch;
+}
+
+/** @type {ResolveRequest} */
+function defaultResolveRequest(url) {
+	return { pathname: url.pathname };
+}
+
+/** @type {(prefix: string, urlPathname: string) => { isPrefixed: boolean; pathname: string }} */
+function resolvePathnamePrefix(prefix, urlPathname) {
+	const isPrefixed = urlPathname === prefix || urlPathname.startsWith(`${prefix}/`);
+
+	if (!isPrefixed) {
+		return { isPrefixed: false, pathname: urlPathname };
+	}
+
+	const pathname = urlPathname === prefix ? '/' : urlPathname.replace(`${prefix}/`, '/');
+
+	return { isPrefixed: true, pathname };
 }
 
 /** @type {(pathname: string) => { id: number; routeKey: string }} */
@@ -99,4 +119,4 @@ function resolveRouteKey(pathname) {
 	return { id, routeKey };
 }
 
-export { createStandardRouteDispatcher, resolveRouteKey };
+export { createStandardRouteDispatcher, resolvePathnamePrefix, resolveRouteKey };

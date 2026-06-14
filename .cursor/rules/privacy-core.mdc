@@ -27,7 +27,7 @@ alwaysApply: true
 ## Оформление
 
 - Заголовок страницы: «Политика обработки персональных данных».
-- Дата публикации — `<time datetime="YYYY-MM-DD">` в начале; обновлять при существенных правках.
+- Дата редакции политики — `privacyRevisionDate` в `app/common/configure-site.js` (тот же формат, что `date` в [`renderTimeTag`](common/templates/time.js): `SiteDatetimeInput` — `YYYY-MM-DD`, ISO с временем или MySQL `YYYY-MM-DD HH:mm:ss`); в разметке — `renderTimeTag({ date: privacyRevisionDate })`. При существенных правках текста обновляй **одну** дату в конфиге — она же попадёт в `<time>` и в `lastmod` для `/privacy` в sitemap через [`normalizeDatetime`](common/lib/normalize-datetime.js), если хост не передал свой `lastmod`.
 - Неразрывные пробелы — литерал в шаблонах (см. [`code-style-core.mdc`](code-style-core.mdc)).
 - Разметка в `<section class="content">`, как у других content-страниц.
 
@@ -81,21 +81,13 @@ alwaysApply: true
 
 ## Тесты
 
-`test/routes/privacy.spec.js` — проверка ключевых формулировок через `privacyRoute.GET`, без дублирования в integration.
-
-Базовый набор (все сайты): 152-ФЗ, серверные журналы, карта кликов/запись сессий, `EMAIL`, дата публикации.
-
-С email дополнительно: отсутствие форм (если форм нет), `mailto:`, сценарии из §3 проекта.
-
-С формами дополнительно: перечень полей из §2, цели из §3 проекта.
-
-Не привязывать тест к конкретной дате без необходимости — достаточно `assert.match(markup, /datetime="\d{4}-\d{2}-\d{2}"/)`; проектные фразы — через осмысленные regex из текста политики.
+`registerPrivacyRouteTests(privacyRoute, { hasEmail?, patterns? })` из [`test-helpers/privacy-route-tests.js`](test-helpers/privacy-route-tests.js) — базовый набор; хост передаёт project-specific `patterns` в `test/routes/privacy.spec.js`, без дублирования в integration.
 
 ## Чеклист при новом проекте
 
-1. Скопировать структуру `privacy.js`, подставить оператора и проектные цели.
+1. Скопировать структуру `privacy.js`, подставить оператора и проектные цели; задать `privacyRevisionDate` в `configure-site.js`.
 2. Сверить §7 с фактическим `ym(..., "init", { ... })`.
 3. Если есть mailto — §2–§6 по блоку «email», UI-согласие на соответствующих страницах.
 4. Если есть формы — §2–§6 по блоку «формы», UI-согласие у форм.
 5. Если есть внешние ссылки — §10; если нет — абзац можно опустить.
-6. Добавить `test/routes/privacy.spec.js`, прогнать `npm run lint` и тесты.
+6. Добавить `test/routes/privacy.spec.js` с `registerPrivacyRouteTests` и project-specific `patterns`, прогнать `npm run lint` и тесты.
