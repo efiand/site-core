@@ -2,6 +2,17 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.6] - 2026-06-14
+
+### Added
+
+- `createRenderPage`: `title` + `heading` в document title; опции `getPageAssetsOptions`, `getHtmlPrefix`, `getUrlMeta`; поля `LayoutData.ogPathname`, `webAppTitle`.
+- `config/nodemon.host.json`: `html` в `ext` для хостов с HTML-данными в `app/server/data/`.
+
+### Fixed
+
+- `LayoutData`: убрано хостовое поле `isManuscript` из core — расширение через `src/types/view.d.ts` хоста.
+
 ## [1.1.5] - 2026-06-14
 
 ### Fixed

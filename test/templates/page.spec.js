@@ -50,7 +50,7 @@ describe('Общее/Страница', () => {
 		const html = await renderPage({
 			heading: 'Hello',
 			pageTemplate: '',
-			pathname: '/',
+			pathname: '/about',
 		});
 
 		assert.match(html, /<title>Hello \| example<\/title>/);
@@ -72,5 +72,60 @@ describe('Общее/Страница', () => {
 		});
 
 		assert.match(html, /href="\/manuscript\/favicon\.svg"/);
+	});
+
+	test('createRenderPage собирает document title из title и heading', async () => {
+		const renderPage = createRenderPage({
+			renderLayout: () => '',
+		});
+
+		const html = await renderPage({
+			heading: 'Стихотворения',
+			pageTemplate: '',
+			pathname: '/mad/1',
+			title: 'Прекрасная пора',
+		});
+
+		assert.match(html, /<title>Прекрасная пора \| Стихотворения \| example<\/title>/);
+	});
+
+	test('createRenderPage поддерживает getPageAssetsOptions и ogPathname', async () => {
+		const renderPage = createRenderPage({
+			getPageAssetsOptions: ({ faviconPrefix = '' }) => ({
+				cssEntry: faviconPrefix ? 'manuscript' : 'main',
+				devCssPath: faviconPrefix ? '/client/css/manuscript.css' : '/client/css/main.css',
+			}),
+			renderLayout: () => '',
+		});
+
+		const html = await renderPage({
+			faviconPrefix: '/manuscript',
+			ogPathname: '/manuscript/mad/1',
+			pageTemplate: '',
+			pathname: '/mad/1',
+		});
+
+		assert.match(html, /manuscript\.css/);
+		assert.match(html, /property="og:url" content="https:\/\/example.com\/manuscript\/mad\/1"/);
+		assert.match(html, /rel="canonical" href="https:\/\/example.com\/mad\/1"/);
+	});
+
+	test('createRenderPage поддерживает webAppTitle и getHtmlPrefix', async () => {
+		const renderPage = createRenderPage({
+			getHtmlPrefix: ({ pathname = '' }) =>
+				pathname.startsWith('/mad')
+					? 'og: http://ogp.me/ns# article: http://ogp.me/ns/article#'
+					: 'og: http://ogp.me/ns#',
+			renderLayout: () => '',
+		});
+
+		const html = await renderPage({
+			pageTemplate: '',
+			pathname: '/mad/1',
+			webAppTitle: 'Рукопись',
+		});
+
+		assert.match(html, /apple-mobile-web-app-title" content="Рукопись"/);
+		assert.match(html, /article: http:\/\/ogp\.me\/ns\/article#/);
 	});
 });

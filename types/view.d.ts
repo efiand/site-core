@@ -7,9 +7,11 @@ interface LayoutData {
 	ogImage?: string;
 	ogImageHeight?: string | number;
 	ogImageWidth?: string | number;
+	ogPathname?: string;
 	pageTemplate?: string;
 	pathname?: string;
 	title?: string;
+	webAppTitle?: string;
 }
 
 type PageAssetsOptions = {
@@ -25,6 +27,9 @@ type CreateRenderPageOptions = {
 	defaultOgImageWidth?: number;
 	faviconPrefix?: string;
 	fonts?: Iterable<string>;
+	getHtmlPrefix?: (data: LayoutData) => string;
+	getPageAssetsOptions?: (data: LayoutData) => PageAssetsOptions;
+	getUrlMeta?: (pathname: string, baseUrl: string, data: LayoutData) => string;
 	headExtras?: string;
 	htmlLang?: string;
 	htmlPrefix?: string;
