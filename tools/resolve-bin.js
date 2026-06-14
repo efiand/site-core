@@ -16,6 +16,34 @@ const CLI_PACKAGES = {
 	tsc: 'typescript',
 };
 
+/** @type {(entryPath: string, pkgName: string) => string | null} */
+function findPackageRoot(entryPath, pkgName) {
+	let dir = path.dirname(entryPath);
+
+	for (;;) {
+		const pkgJsonPath = path.join(dir, 'package.json');
+
+		try {
+			accessSync(pkgJsonPath);
+			const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8'));
+
+			if (pkg.name === pkgName) {
+				return dir;
+			}
+		} catch {
+			// keep walking up
+		}
+
+		const parent = path.dirname(dir);
+
+		if (parent === dir) {
+			return null;
+		}
+
+		dir = parent;
+	}
+}
+
 /**
  * @param {string} name CLI name without extension (e.g. `tsc`, `biome`)
  * @param {string} [hostCwd=process.cwd()]
@@ -108,9 +136,12 @@ function resolvePackageDir(pkgName, hostCwd) {
 	for (const root of [hostCwd, siteCoreRoot]) {
 		try {
 			const require = createRequire(path.join(root, 'package.json'));
-			const pkgJsonPath = require.resolve(`${pkgName}/package.json`);
+			const entryPath = require.resolve(pkgName);
+			const pkgDir = findPackageRoot(entryPath, pkgName);
 
-			return path.dirname(pkgJsonPath);
+			if (pkgDir) {
+				return pkgDir;
+			}
 		} catch {
 			// try next
 		}
@@ -119,4 +150,4 @@ function resolvePackageDir(pkgName, hostCwd) {
 	return null;
 }
 
-export { resolveBin, resolveBinSpawn };
+export { resolveBin, resolveBinSpawn, resolvePackageDir };

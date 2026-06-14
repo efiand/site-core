@@ -2,6 +2,13 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.2] - 2026-06-14
+
+### Fixed
+
+- `tools/vendor-resolver.js`, `tools/install-pre-commit.js`: резолв toolchain-пакетов и `@fastify/pre-commit` через `resolvePackageDir` — работает и при nested `node_modules/site-core`, и при hoisting зависимостей в корень хоста (git pin).
+- `tools/resolve-bin.js`: `resolvePackageDir` ищет корень пакета через `require.resolve(name)`, без subpath `package.json` (у части deps он не экспортируется).
+
 ## [1.1.1] - 2026-06-14
 
 ### Added

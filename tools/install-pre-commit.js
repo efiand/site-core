@@ -2,6 +2,7 @@
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { resolvePackageDir } from './resolve-bin.js';
 
 /** @type {(startDir: string) => string | null} */
 function findGitDir(startDir) {
@@ -124,8 +125,13 @@ function installHostPreCommit(hostRoot) {
 
 /** @type {(hostRoot: string) => string | null} */
 function resolvePreCommitCli(hostRoot) {
-	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
-	const cli = path.join(coreRoot, 'node_modules/@fastify/pre-commit/index.js');
+	const pkgDir = resolvePackageDir('@fastify/pre-commit', hostRoot);
+
+	if (!pkgDir) {
+		return null;
+	}
+
+	const cli = path.join(pkgDir, 'index.js');
 
 	return existsSync(cli) ? cli : null;
 }

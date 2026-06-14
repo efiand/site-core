@@ -1,9 +1,7 @@
 import { isBuiltin } from 'node:module';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-
-const siteCoreRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const vendorRoot = path.join(siteCoreRoot, 'node_modules');
+import { pathToFileURL } from 'node:url';
+import { resolvePackageDir } from './resolve-bin.js';
 
 const VENDORS = new Set(['fast-xml-validator', 'html-validate', 'posthtml-bem-linter', 'rolldown']);
 
@@ -25,7 +23,12 @@ async function resolve(specifier, context, nextResolve) {
 		return nextResolve(specifier, context);
 	}
 
-	const pkgDir = path.join(vendorRoot, pkgName);
+	const pkgDir = resolvePackageDir(pkgName, process.cwd());
+
+	if (!pkgDir) {
+		return nextResolve(specifier, context);
+	}
+
 	const entry = subpath.length ? path.join(pkgDir, ...subpath) : path.join(pkgDir, PKG_ENTRIES[pkgName] ?? '');
 
 	return nextResolve(pathToFileURL(entry).href, context);
