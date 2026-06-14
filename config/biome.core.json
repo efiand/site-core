@@ -83,14 +83,29 @@
 				"config/postcss.base.js",
 				"config/rolldown.base.js",
 				"rolldown.config.js",
-				"test/**/*.spec.js",
-				"types/toolchain.d.ts"
+				"test/**/*.spec.js"
 			],
 			"linter": {
 				"rules": {
 					"correctness": {
 						"noUndeclaredDependencies": "off",
 						"noUnresolvedImports": "off"
+					},
+					"style": {
+						"noDefaultExport": "off",
+						"useExportsLast": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["types/**/*.d.ts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off",
+						"noUnresolvedImports": "off",
+						"noUnusedVariables": "off"
 					},
 					"style": {
 						"noDefaultExport": "off",

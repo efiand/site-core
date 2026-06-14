@@ -15,7 +15,7 @@ alwaysApply: true
 - Намеренно неиспользуемые привязки — имя с префиксом `_` (`_removedEntry`), не голый `_`.
 - **Юникод:** типографские символы (`«»`, неразрывный пробел, тире) — **литералами** в исходнике везде: JS, CSS, HTML-шаблоны. Не HTML-entities (`&nbsp;`, `&laquo;`) и не `\uXXXX`-escape.
 
-# Константы модуля (`export const`)
+# Константы модуля
 
 - **UPPER_SNAKE_CASE** — скалярные литералы и неизменяемые таблицы.
 - **camelCase** — реестры (`version` → `version.CSS`), объекты-сервисы (`log`).
@@ -31,8 +31,9 @@ alwaysApply: true
 
 # Порядок в модуле
 
-- **Импорты** — в начале (Biome `organizeImports`); именованные specifiers в `import { … }` — по алфавиту (`identifierOrder: lexicographic`).
-- **Константы** — после импортов, по алфавиту.
+- **`/// <reference path="…" />`** — в начале файла (до импортов), если модуль использует именованные типы из [`types/`](../types/) или colocated `.d.ts`; для shared-типов — обычно `../types/index.d.ts` в `tools/`, `/// <reference path="../../types/index.d.ts" />` в `common/` / `server/` / `test/`.
+- **Импорты** — после reference (Biome `organizeImports`); именованные specifiers в `import { … }` — по алфавиту (`identifierOrder: lexicographic`).
+- **Константы** — после импортов; все top-level `const` / `export const` — **по алфавиту идентификаторов** (пары `CORE_*` / `HOST_*` и другие однотипные — не группировать по роли, сортировать в общем списке: `CORE_BIOME_…` перед `CORE_WORKFLOW_…` перед `HOST_…`).
 - **Функции** — по алфавиту; без `export` у объявления; **между соседними top-level `function` / `async function` — одна пустая строка** (между `}` предыдущей и `/**` следующей; JSDoc и её `function` / `async function` — **без пустой строки между ними**). Только между **объявлениями** функций — не в исполняемом коде и не в шаблонных литералах разметки. Biome не покрывает — [`tools/check-function-order.js`](tools/check-function-order.js).
 - **Экспорт** — один блок `export { … }` **в конце файла** (Biome `useExportsLast`); имена в блоке — **по алфавиту** (Biome `organizeImports`, `identifierOrder: lexicographic`). Inline `export function` / `export const` / `export default` **запрещены** (`noDefaultExport`); default export не используем.
 - **Top-level исполняемый код** — после функций, до `export { … }`; в `tools/` — в конце файла перед экспортом.
@@ -42,7 +43,8 @@ alwaysApply: true
 
 - JSDoc у экспортируемых функций — когда добавляет описание, именованный тип (`LayoutData`, `RouteMethod`) или неочевидный возврат.
 - Не дублируй типы, видимые из дефолтов и сигнатуры (пример: `renderInnerPage({ heading = '', pathname = '', template = '' } = {})`).
-- Типизацию функций — одним `@type` с сигнатурой `(params) => Return`, не отдельными `@param` / `@returns`; строка `@type` не длиннее `lineWidth` из [`config/biome.core.json`](config/biome.core.json) (120). Не влезает — именованный тип в [`types/`](types/) (тематический `.d.ts`) и короткий `@type {(…) => TypeName}`; крайний случай — `@param` / `@returns`. **`@typedef`** — только если тип переиспользуется или не влезает inline; иначе объектный тип пиши прямо в `@type`.
+- Именованные типы для `.js` — **`/// <reference />` + `type` / `interface` в [`types/`](../types/)** (тематический `.d.ts`, подключённый через [`types/index.d.ts`](../types/index.d.ts)) или colocated `.d.ts` у export-модуля. **`@typedef` в `.js` не используй** — вынеси тип в `.d.ts`.
+- Типизацию функций — одним `@type` с сигнатурой `(params) => Return`, не отдельными `@param` / `@returns`; строка `@type` не длиннее `lineWidth` из [`config/biome.core.json`](config/biome.core.json) (120). Не влезает — именованный тип в [`types/`](types/) и короткий `@type {(…) => TypeName}`; крайний случай — `@param` / `@returns`. Объектный тип в одной сигнатуре — inline в `@type`, без `@typedef`.
 - `@type` оставляй, когда без него тип не выводится: `.d.ts`-тип, `typeof` от константы, union сложнее дефолтов.
 - Между текстовым описанием и тегами JSDoc — пустая строка (` *` на отдельной строке).
 - **Перед закрывающим ` */` внутри JSDoc пустой строки быть не должно** — тег `@type` / `@param` / `@returns` сразу над ` */`.
@@ -100,7 +102,7 @@ alwaysApply: true
 - `{ page }` — HTML-страница: middleware вызывает `renderPage` и подставляет дефолтный `contentType` / `statusCode`.
 - **Страница:** [`createRenderPage`](common/templates/page.js) в core — `<html>`, `<head>`, assets, OG; [`renderFaviconLinks`](common/templates/favicon-links.js); [`renderFontPreloads`](common/templates/font-preloads.js); `<body>` + [`renderYandexMetrika`](common/templates/yandex-metrika.js) + **`renderLayout` хоста**. Хост: `app/server/lib/app.js` — `createRenderPage({ renderLayout, … })`, `createApp`, export `renderPage`. `faviconPrefix` — в `createRenderPage` (дефолт) или в `renderPage({ faviconPrefix, … })`.
 - **`renderLayout` хоста** — только разметка **внутри** `<body>` (обёртка `.layout`, nav и т.п.); **не** рендерит `<body>`, `<html>`, Metrika.
-- **Favicon / PWA** (`public/`, одинаково во всех хостах): `favicon-96x96.png`, `favicon.svg`, `apple-touch-icon.png` (180×180), `site.webmanifest`. Пути — [`renderFaviconLinks`](common/templates/favicon-links.js); префикс в `createRenderPage({ faviconPrefix })` (по умолчанию `''`; для manuscript-зеркала raskatov — `/manuscript`).
+- **Favicon / PWA** (`public/`, одинаковый набор файлов у consumer-проектов): `favicon-96x96.png`, `favicon.svg`, `apple-touch-icon.png` (180×180), `site.webmanifest`. Пути — [`renderFaviconLinks`](common/templates/favicon-links.js); префикс в `createRenderPage({ faviconPrefix })` (по умолчанию `''`; для зеркала с path-prefix — например `/manuscript`).
 - **Шрифты:** исходники — `public/fonts/*.woff2` (в git хоста). [`site-core-postinstall`](tools/postinstall.js) сканирует каталог, переименовывает в `{family-slug}-{weight}[-italic].woff2`, генерирует gitignored `src/client/css/common/fonts.css` (`@font-face`) и `common/generated/fonts.js` (`export const fonts`) в **site-core**; [`page.js`](common/templates/page.js) импортирует массив → [`renderFontPreloads`](common/templates/font-preloads.js). После добавления/замены файлов — `npm run postinstall` или `npm run build`. Override — `createRenderPage({ fonts: […] })` (тесты).
 - CSS — BEM в `css/blocks/`; один файл на блок, без кросс-блочных селекторов — см. раздел «CSS (BEM)»; классы в разметке — `posthtml-bem-linter` в тестах хоста.
 - Статика: `npm run build` (PostCSS → `public/bundles`, HTML → `tools/build-static-pages.js`).
@@ -143,7 +145,7 @@ alwaysApply: true
 
 ## TypeScript
 
-- [`types/index.d.ts`](types/index.d.ts) — **entrypoint** типов: только `/// <reference path="…" />` на доменные `.d.ts`, **по алфавиту path**; в global-файлах без `export {}` и `import type`.
+- [`types/index.d.ts`](types/index.d.ts) — **entrypoint** типов: только `/// <reference path="…" />` на доменные `.d.ts`, **по алфавиту path**; в global-файлах без `export {}` и `import type`. Именованные типы для JS-модулей — здесь, не через `@typedef` в `.js`. В [`biome.core.json`](../config/biome.core.json) для `types/**/*.d.ts` отключён `noUnusedVariables`: LSP Biome (`domains.project`) не связывает global-типы с JSDoc в `.js`, CLI и `tsc` — ок.
 - Хост в `tsconfig.json`: `extends` — [`config/tsconfig.base.json`](config/tsconfig.base.json) + [`config/tsconfig.host.json`](config/tsconfig.host.json); `include` — [README](../README.md); **не дублируй** `exclude` из `tsconfig.host.json`.
 
 ## Расширение типов хостом
@@ -173,7 +175,7 @@ TypeScript смержит декларации с core. То же для `RouteP
 
 `isDev` / `port` / `host`: синхронизируются в [`setSiteConfig`](common/lib/site-config.js) (runtime-поля — только на сервере); после `listen` — в [`createHttpServer`](server/lib/http-server.js). Читаются через [`getSiteConfig()`](common/lib/site-config.js). `isDev`: `process.env.DEV` / `window.DEV`; порт: `DEV_PORT` (dev), `PORT` (preview/prod). В `SiteConfigPatch` нет `isDev`, `port`, `host`, `baseUrl`.
 
-`hasDb`: default `false`. Хост с MySQL (aromachef) — `hasDb: true` в `configure-site.js`; модули [`db.js`](server/lib/db.js) и teardown в тестах опираются на этот флаг.
+`hasDb`: default `false`. Consumer с MySQL — `hasDb: true` в `configure-site.js`; модули [`db.js`](server/lib/db.js) и teardown в тестах опираются на этот флаг.
 
 `SERVICE_PAGES` в [`site-config.js`](common/lib/site-config.js): `/__/404`, `/__/update`, `/404.html`. **`staticPages`** = `publicPages` + пересечение ключей `routes` с `SERVICE_PAGES`. Источник правды — **роуты хоста**: nginx-хост регистрирует `/__/404` и `/__/update`; GitHub Pages — `/404.html` (build → `public/404.html`); без служебного роута страница не попадает в build.
 

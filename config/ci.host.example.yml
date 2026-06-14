@@ -1,6 +1,14 @@
-# Шаблон ci.yml хоста — после публикации site-core (шаг 3 миграции).
-# Заменить <org> и X.Y.Z на фактический репозиторий и тег site-core.
-# До шага 3 оставить локальный self-contained ci.yml в хосте.
+# Шаблон `.github/workflows/ci.yml` хоста — шаг 3 миграции на site-core.
+# Требует опубликованный site-core на GitHub (`uses:` читает YAML из git ref, не из node_modules).
+# Заменить <org> и X.Y.Z на репозиторий и тег site-core.
+#
+# До шага 3 — self-contained `ci.yml` в репозитории consumer-проекта.
+# После шага 3 — thin caller ниже (lint/test/deploy через reusable workflows site-core).
+#
+# Commit keywords (message): `[skip` — skip CI; `[no-deploy]`, `[WIP]` — skip deploy only.
+# Deploy if: !contains(…, '[no-deploy]') && !contains(…, '[WIP]')
+
+# --- VPS: scp/ssh (deploy-static-releases.yml) ---
 
 name: CI
 
@@ -11,7 +19,7 @@ on:
 
 jobs:
   ci:
-    if: ${{ ! contains(github.event.head_commit.message, '[skip') }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip') }}
     uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z
     with:
       test_command: npm test
@@ -23,33 +31,45 @@ jobs:
 
   deploy:
     needs: ci
-    if: ${{ contains(github.event.head_commit.message, '[deploy]') }}
+    if: ${{ !contains(github.event.head_commit.message, '[no-deploy]') && !contains(github.event.head_commit.message, '[WIP]') }}
     uses: <org>/site-core/.github/workflows/deploy-static-releases.yml@X.Y.Z
     with:
       scp_source: app/__/*,public/*,tools/prod/*
     secrets: inherit
 
-# GitHub Pages (well.efiand.ru и т.п.):
+# --- GitHub Pages: peaceiris (deploy-static-releases.yml не подходит) ---
+# host-ci → artifact `public/` → download-artifact → peaceiris; без повторного npm ci/test.
+#
+# name: CI
+#
+# on:
+#   push:
+#     branches:
+#       - main
 #
 # jobs:
 #   ci:
+#     if: ${{ !contains(github.event.head_commit.message, '[skip') }}
 #     uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z
 #     with:
+#       test_command: npm test
 #       artifact_paths: public/
-#       upload_artifact: false
+#     secrets: inherit
 #
 #   deploy:
 #     needs: ci
-#     if: ${{ contains(github.event.head_commit.message, '[deploy]') }}
+#     if: ${{ !contains(github.event.head_commit.message, '[no-deploy]') && !contains(github.event.head_commit.message, '[WIP]') }}
 #     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
 #     steps:
-#       - uses: actions/checkout@v6
-#       - uses: actions/setup-node@v6
+#       - name: Download artifact
+#         uses: actions/download-artifact@v8
 #         with:
-#           node-version: '24'
-#       - run: npm ci
-#       - run: npm test
-#       - uses: peaceiris/actions-gh-pages@v4.1.0
+#           name: deploy-bundle
+#
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v4.1.0
 #         with:
 #           github_token: ${{ secrets.GITHUB_TOKEN }}
 #           publish_dir: ./public

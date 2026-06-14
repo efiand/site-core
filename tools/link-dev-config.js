@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const CORE_BIOME_BIN_PREFIX = './node_modules/@biomejs/';
-const HOST_BIOME_BIN_PREFIX = './node_modules/site-core/node_modules/@biomejs/';
+const CORE_WORKFLOW_SCHEMA = './config/github-workflow.schema.json';
 
 /**
  * Symlink на core — если содержимое на хосте 1:1.
@@ -16,6 +16,9 @@ const DEFAULT_LINKS = [
 	{ link: '.editorconfig', target: '.editorconfig' },
 	{ link: '.vscode/extensions.json', target: '.vscode/extensions.json' },
 ];
+
+const HOST_BIOME_BIN_PREFIX = './node_modules/site-core/node_modules/@biomejs/';
+const HOST_WORKFLOW_SCHEMA = './node_modules/site-core/config/github-workflow.schema.json';
 
 /** @type {(hostRoot: string, linkPath: string, targetPath: string) => void} */
 function ensureLink(hostRoot, linkPath, targetPath) {
@@ -101,7 +104,10 @@ function writeHostVscodeSettings(hostRoot, coreRoot) {
 		return;
 	}
 
-	const patched = fs.readFileSync(sourcePath, 'utf8').replaceAll(CORE_BIOME_BIN_PREFIX, HOST_BIOME_BIN_PREFIX);
+	const patched = fs
+		.readFileSync(sourcePath, 'utf8')
+		.replaceAll(CORE_BIOME_BIN_PREFIX, HOST_BIOME_BIN_PREFIX)
+		.replaceAll(CORE_WORKFLOW_SCHEMA, HOST_WORKFLOW_SCHEMA);
 
 	fs.mkdirSync(path.dirname(destPath), { recursive: true });
 

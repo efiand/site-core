@@ -16,7 +16,7 @@ setSiteConfig({
 // setSiteConfig({ routes });
 //
 // Порт — только из окружения: DEV_PORT (dev, site-core-dev), PORT (preview, prod, CI, systemd).
-// aromachef и др. с MySQL:
+// Consumer с MySQL:
 // hasDb: true,
 //
 // Служебные страницы — только если зарегистрированы в routes:

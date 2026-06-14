@@ -1,15 +1,11 @@
 #!/usr/bin/env node
+/// <reference path="../types/index.d.ts" />
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const SKIP_DIRS = new Set(['node_modules', 'public', 'tmp', 'vendors']);
-
-/** @typedef {{ expected: string[], file: string, names: string[] }} FunctionOrderViolation */
-
-/** @typedef {{ after: string, before: string, file: string }} FunctionSpacingViolation */
-
-/** @typedef {{ file: string, line: number, message: string }} JsdocFormattingViolation */
 
 /** @param {string} filePath @param {string} root */
 function checkFileFunctionBlankLines(filePath, root) {

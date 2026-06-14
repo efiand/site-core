@@ -2,6 +2,24 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.1.0] - 2026-06-14
+
+### Changed
+
+- **Breaking (CI):** deploy consumer-проекта **по умолчанию** после успешного CI; opt-out — `[no-deploy]` или `[WIP]` в commit message (вместо opt-in `[deploy]`). Обновите `ci.yml` и README хоста по [`config/ci.host.example.yml`](config/ci.host.example.yml) и `workflow-core.mdc`.
+- `config/ci.host.example.yml`: GitHub Pages — deploy через artifact из `host-ci` (`download-artifact` → peaceiris), без повторного `npm ci`/`test`.
+- `config/biome.core.json`: отдельный override для `types/**/*.d.ts` (`noUnusedVariables` и др. off); типы lint-tools — в `types/tools.d.ts`, не `@typedef` в `.js`.
+- Документация и rules: нейтральные формулировки «consumer-проект» вместо имён конкретных хостов.
+
+### Added
+
+- `config/github-workflow.schema.json` — JSON Schema для `.github/workflows/*.{yml,yaml}`; `site-core-postinstall` подставляет путь под nested `node_modules/site-core` в `.vscode/settings.json`.
+- Рекомендуемое расширение VS Code: `redhat.vscode-yaml`.
+
+### Fixed
+
+- `test/tools/install-pre-commit.spec.js`: проверка nested `@fastify/pre-commit` через временный каталог, без зависимости от локального пути `efiand.ru`.
+
 ## [1.0.2] - 2026-06-14
 
 ### Fixed

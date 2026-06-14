@@ -16,7 +16,6 @@ interface Window {
 }
 
 namespace NodeJS {
-	// biome-ignore lint/correctness/noUnusedVariables: merged ProcessEnv for host checkJs
 	interface ProcessEnv {
 		APP_ROOT?: string;
 		AUTH_HASH?: string;

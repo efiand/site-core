@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { findGitDir, hasPreCommitConfig, resolvePreCommitCli } from '../../tools/install-pre-commit.js';
 
 const coreRoot = fileURLToPath(new URL('../..', import.meta.url));
-const efiandRoot = fileURLToPath(new URL('../../../efiand.ru', import.meta.url));
 
 describe('Инструменты/install-pre-commit', () => {
 	test('findGitDir находит .git site-core', () => {
@@ -18,13 +19,17 @@ describe('Инструменты/install-pre-commit', () => {
 		assert.equal(hasPreCommitConfig(coreRoot), true);
 	});
 
-	test('resolvePreCommitCli находит @fastify/pre-commit на хосте', () => {
-		if (!existsSync(efiandRoot)) {
-			return;
+	test('resolvePreCommitCli находит @fastify/pre-commit в nested node_modules consumer-проекта', () => {
+		const hostRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'site-core-precommit-'));
+		const cliPath = path.join(hostRoot, 'node_modules/site-core/node_modules/@fastify/pre-commit/index.js');
+
+		fs.mkdirSync(path.dirname(cliPath), { recursive: true });
+		fs.writeFileSync(cliPath, '');
+
+		try {
+			assert.equal(resolvePreCommitCli(hostRoot), cliPath);
+		} finally {
+			fs.rmSync(hostRoot, { force: true, recursive: true });
 		}
-
-		const cli = resolvePreCommitCli(efiandRoot);
-
-		assert.match(cli ?? '', /@fastify[/\\]pre-commit[/\\]index\.js$/);
 	});
 });

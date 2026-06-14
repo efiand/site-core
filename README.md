@@ -1,6 +1,6 @@
 # site-core
 
-Shared-библиотека для vanilla JS MPA/fullstack-проектов (`efiand.ru`, `aromachef.ru`, `raskatov.efiand.ru`, `well.efiand.ru`).
+Shared-библиотека для vanilla JS MPA/fullstack consumer-проектов (отдельный git-репозиторий на каждый сайт).
 
 ## Подключение
 
@@ -127,7 +127,9 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 **До шага 3** (git pin site-core) хост использует локальный self-contained `ci.yml`. **Шаг 3:** заменить на `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z` — см. `workflow-core.mdc`.
 
-**Релиз site-core:** bump `version` в `package.json`, секция в [`CHANGELOG.md`](CHANGELOG.md), push в `main` — job `release` создаёт tag и GitHub Release (tag уже есть — skip). **`[deploy]`** — только на **хостах** (деплой на VPS); см. [`workflow-core.mdc`](.cursor/rules/workflow-core.mdc).
+**Релиз site-core:** bump `version` в `package.json`, секция в [`CHANGELOG.md`](CHANGELOG.md), push в `main` — job `release` создаёт tag и GitHub Release (tag уже есть — skip).
+
+**Consumer-проекты (CI/deploy):** deploy **по умолчанию** после CI; opt-out в commit message — **`[no-deploy]`**, **`[WIP]`** (только deploy); **`[skip`** — весь workflow. Таблица и `if:` — [`workflow-core.mdc`](.cursor/rules/workflow-core.mdc).
 
 ## Cache busting
 

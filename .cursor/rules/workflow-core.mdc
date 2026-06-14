@@ -73,11 +73,11 @@ Symlink `current` на хостинге — обычный `ln -sfn` в shell п
 
 Хост после публикации site-core вызывает через `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z`. Шаблон caller — [`config/ci.host.example.yml`](../config/ci.host.example.yml).
 
-- **`[skip`** в commit message — `if` на job **в caller** (`ci.yml` хоста), не в reusable.
-- **`[deploy]`** — см. раздел ниже; для хоста — deploy-job с `needs: ci` и `if: contains(…, '[deploy]')`.
+- **`[skip`** в commit message — `if` на job **ci** в caller (`ci.yml` consumer-проекта), не в reusable.
+- **Deploy opt-out** — `[no-deploy]` и `[WIP]`; deploy-job: `if: !contains(…, '[no-deploy]') && !contains(…, '[WIP]')` (деплой **по умолчанию**). См. раздел ниже.
 - Deploy-job **не** checkout'ит репозиторий: artifact из `host-ci` → `download-artifact` → scp.
-- Secrets deploy — `DEPLOY_SERVER_*`; test env (DB, auth) — опциональные secrets в `host-ci` (aromachef).
-- До публикации site-core (локальный `file:`) хост держит **self-contained** `.github/workflows/ci.yml`. Переключение — **шаг 3** миграции.
+- Secrets deploy — `DEPLOY_SERVER_*`; test env (DB, auth) — опциональные secrets в `host-ci`.
+- До публикации site-core (локальный `file:`) consumer держит **self-contained** `.github/workflows/ci.yml`. Переключение — **шаг 3** миграции.
 
 ## Порядок шагов host-ci
 
@@ -92,7 +92,7 @@ Deploy-static-releases (раннер GitHub): download artifact → scp → ssh.
 
 ## Релиз site-core
 
-Без `[deploy]` — только **ручной bump** `version` в `package.json`.
+Релиз site-core **не использует** deploy-keywords — только **ручной bump** `version` в `package.json`.
 
 | Шаг | Действие                                                                  |
 | --- | ------------------------------------------------------------------------- |
@@ -112,17 +112,34 @@ Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть
 - Категории: `Added`, `Changed`, `Fixed`, `Removed` — только непустые; пункты для **потребителей** (хосты, bin, breaking, заметное поведение CLI), без перечисления каждого внутреннего рефакторинга.
 - Запись в CHANGELOG — **в том же коммите/PR**, что и bump `version`; job `release` файл не генерирует.
 
-## `[deploy]` в commit message (только хосты)
+## Commit keywords в CI consumer-проекта
 
-Keyword **`[deploy]`** — **только деплой хоста** на VPS, не релиз site-core.
+Deploy-job идёт **после успешного CI по умолчанию**. Маркеры в **commit message** (подстроки):
 
-| Репозиторий   | `[deploy]`                                                                                                                                                                                                            |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **site-core** | **не используется** — релиз по `version`, см. выше                                                                                                                                                                    |
-| **хост**      | deploy-job: artifact → scp → ssh, `current` → новый релиз — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) или self-contained steps в `ci.yml` хоста (`if: contains(…, '[deploy]')`) |
+| Маркер | CI (lint/test) | Deploy |
+| ------ | -------------- | ------ |
+| *(нет)* | ✅ | ✅ |
+| **`[no-deploy]`** | ✅ | ❌ |
+| **`[WIP]`** | ✅ | ❌ |
+| **`[skip`** (`[skip ci]`, `[skip lint]` …) | ❌ | ❌ |
 
-- Сначала релиз core (bump `version` + push), затем bump pin у хоста и при необходимости `[deploy]` на хосте.
-- README хоста про деплой — одна строка + ссылка на этот раздел / `ci.yml` хоста.
+```yaml
+jobs:
+  ci:
+    if: ${{ !contains(github.event.head_commit.message, '[skip') }}
+  deploy:
+    needs: ci
+    if: ${{ !contains(github.event.head_commit.message, '[no-deploy]') && !contains(github.event.head_commit.message, '[WIP]') }}
+```
+
+| Репозиторий | Деплой |
+| ----------- | ------ |
+| **site-core** | **не деплоится** — релиз по bump `version`, см. «Релиз site-core» |
+| **consumer** | по умолчанию после CI — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) или self-contained steps в `ci.yml` |
+
+- Встроенные `[skip ci]` / `[ci skip]` GitHub **отменяют весь workflow** на push — наш `[skip` на job `ci` даёт тот же эффект для caller с `needs: ci`.
+- `[no-deploy]` и `[WIP]` — **кастомные** opt-out **только deploy**; CI всё равно выполняется. `[WIP]` — черновик в `main`: проверить, не выкатывать.
+- README consumer-проекта — краткая таблица или ссылка на этот раздел + `ci.yml`.
 
 `setup-node` — только после checkout: без репозитория нет `package-lock.json` для cache и корректного контекста job.
 
@@ -139,9 +156,13 @@ Keyword **`[deploy]`** — **только деплой хоста** на VPS, н
 
 До шага 3 миграции хост **коммитит** self-contained `.github/workflows/ci.yml`. После — caller с `uses: <org>/site-core/.github/workflows/host-ci.yml@X.Y.Z`; junction на `node_modules` CI не заменит.
 
-# Миграция хоста на site-core
+# site-core и consumer-проекты
 
-При переносе хоста на shared-пакет — по шагам (можно частями, `npm run lint-format` после каждого):
+site-core **не знает** конкретных репозиториев-сайтов: без имён доменов, без статуса миграции, без «эталонов» в доке core. В core — только reusable workflows, шаблоны [`config/*.example.*`](../config/) и shared-код. Конфигурация, CI caller и README — в git **consumer-проекта**.
+
+# Миграция consumer-проекта на site-core
+
+При переносе consumer-проекта на shared-пакет — по шагам (можно частями, `npm run lint-format` после каждого):
 
 | Шаг                  | Что сделать                                                                                                                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -155,6 +176,4 @@ Keyword **`[deploy]`** — **только деплой хоста** на VPS, н
 | pre-commit           | `"pre-commit": ["lint-format", "test"]` в `package.json` — эталон [`config/package.host.example.json`](../config/package.host.example.json); `@fastify/pre-commit` в devDependencies хоста **не нужен** |
 | CI (шаг 3)           | Reusable `host-ci.yml` — [`config/ci.host.example.yml`](../config/ci.host.example.yml); pin `"site-core": "git+https://github.com/<org>/site-core.git#X.Y.Z"`                                           |
 | Релиз site-core      | bump `version` в `package.json` + push в `main` — job `release` в [`ci.yml`](../.github/workflows/ci.yml); см. «Релиз site-core»                                                                        |
-| Документация (шаг 3) | В README хоста — одна ссылка на [README site-core](../README.md) (GitHub URL после публикации); без дубля CLI/imports/postinstall                                                                       |
-
-**Статус:** `efiand.ru` — готов (эталон). `aromachef.ru`, `raskatov.efiand.ru`, `well.efiand.ru` — в очереди.
+| Документация (шаг 3) | В README consumer-проекта — одна ссылка на [README site-core](../README.md) (GitHub URL после публикации); без дубля CLI/imports/postinstall                                                                       |
