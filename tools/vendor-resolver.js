@@ -10,6 +10,7 @@ const PKG_ENTRIES = {
 	'fast-xml-validator': 'src/fxv.js',
 	'html-validate': 'dist/esm/index.js',
 	'posthtml-bem-linter': 'index.js',
+	rolldown: 'dist/index.mjs',
 };
 
 /** @type {import('node:module').ResolveHook} */

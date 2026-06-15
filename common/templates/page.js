@@ -30,6 +30,7 @@ function createRenderPage({
 	htmlLang = 'ru',
 	htmlPrefix = DEFAULT_HTML_PREFIX,
 	renderLayout,
+	renderPageAssetsFn,
 }) {
 	const fonts = fontsOption ?? defaultFonts;
 
@@ -88,6 +89,9 @@ function createRenderPage({
 				<meta property="og:description" content="${description}">
 			`
 			: '';
+		const pageAssetsMarkup = renderPageAssetsFn
+			? await renderPageAssetsFn(pageAssetsOptions)
+			: renderPageAssets(pageAssetsOptions);
 
 		return /* html */ `
 			<!DOCTYPE html>
@@ -112,7 +116,7 @@ function createRenderPage({
 				${descriptionTemplate}
 				${authorMeta}
 				${articleHead}
-				${renderPageAssets(pageAssetsOptions)}
+				${pageAssetsMarkup}
 				${renderFaviconLinks({ faviconPrefix })}
 				${renderFontPreloads(fonts)}
 				${headExtras}

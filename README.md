@@ -123,6 +123,7 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 | Workflow                     | Назначение                              |
 | ---------------------------- | --------------------------------------- |
 | `host-ci.yml`                | lint + test + upload-artifact           |
+| `deploy-github-pages.yml`    | artifact → GitHub Pages (официальные actions) |
 | `deploy-static-releases.yml` | artifact → scp → ssh (`current` на VPS) |
 
 Шаблон caller для хоста — [`config/ci.host.example.yml`](config/ci.host.example.yml).

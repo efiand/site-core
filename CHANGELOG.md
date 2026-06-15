@@ -2,6 +2,22 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.2.0] - 2026-06-15
+
+### Added
+
+- `shuffleArray` — Fisher–Yates в `#core/common/lib/shuffle-array.js`.
+- `getCss` / `getJs` — inline SSR-бандлинг в `#core/server/lib/inline-bundle.js` (PostCSS + Rolldown).
+- `createRenderInlinePageAssets` — prod: inline `<style>` / `<script type="module">`; dev: `renderPageAssets`.
+- `renderYandexMetrikaInline`, `renderYandexMetrikaInlineHead` — inline Metrika для single-page хостов.
+- `createRenderPage({ renderPageAssetsFn })` — кастомная подстановка ассетов вместо `renderPageAssets`.
+- `register-vendors`: entry для `rolldown` → `dist/index.mjs`.
+- `deploy-github-pages.yml` — reusable workflow для GitHub Pages (`configure-pages`, опц. `jekyll-build-pages`, `upload-pages-artifact`, `deploy-pages`) вместо peaceiris и ветки `gh-pages`.
+
+### Changed
+
+- `config/ci.host.example.yml`, `workflow-core.mdc`, README: GitHub Pages — официальные actions; в Settings репозитория **Source: GitHub Actions**.
+
 ## [1.1.8] - 2026-06-14
 
 ### Added

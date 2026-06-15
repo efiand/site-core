@@ -16,3 +16,5 @@ type YandexMetrikaScriptOptions = {
 	isDev?: boolean;
 	pathname?: string;
 };
+
+type YandexMetrikaInlineOptions = YandexMetrikaOptions;

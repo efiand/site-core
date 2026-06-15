@@ -40,7 +40,7 @@ alwaysApply: true
 
 | Где                                  | Что происходит                                                                                                                        |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Раннер GitHub**                    | checkout, `npm ci`, lint, test, upload-artifact; deploy-job — download artifact, **scp** на хостинг, **ssh** с shell-скриптом         |
+| **Раннер GitHub**                    | checkout, `npm ci`, lint, test, upload-artifact; deploy-job — download artifact, **scp** на хостинг, **ssh** с shell-скриптом; **GitHub Pages** — `upload-pages-artifact` → `deploy-pages` |
 | **Сервер хостинга (VPS)**            | приём файлов по scp; по ssh — `mv …/new → releases/<ts>`, **`ln -sfn … current`**, cleanup старых релизов. Без Actions                |
 | **Локальная машина (`postinstall`)** | junction/symlink dev-конфига (Cursor, VS Code, EditorConfig) + генерация шрифтов + **git pre-commit hook** — **не связано** с деплоем |
 
@@ -68,14 +68,16 @@ Symlink `current` на хостинге — обычный `ln -sfn` в shell п
 
 | Workflow                                                                        | Назначение                                                                        |
 | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [`host-ci.yml`](../.github/workflows/host-ci.yml)                               | checkout → node → `npm ci` → lint → test → upload-artifact                        |
+| [`deploy-github-pages.yml`](../.github/workflows/deploy-github-pages.yml)         | artifact → `configure-pages` → [опц. Jekyll] → `upload-pages-artifact` → `deploy-pages` |
 | [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) | на **раннере**: artifact → scp → ssh; на **хостинге**: каталог релиза + `current` |
+| [`host-ci.yml`](../.github/workflows/host-ci.yml)                               | checkout → node → `npm ci` → lint → test → upload-artifact                        |
 
 Хост после публикации site-core вызывает через `uses: <org>/site-core/.github/workflows/….yml@X.Y.Z`. Шаблон caller — [`config/ci.host.example.yml`](../config/ci.host.example.yml).
 
 - **`[skip`** в commit message — `if` на job **ci** в caller (`ci.yml` consumer-проекта), не в reusable.
 - **Deploy opt-out** — `[no-deploy]` и `[WIP]`; deploy-job: `if: !contains(…, '[no-deploy]') && !contains(…, '[WIP]')` (деплой **по умолчанию**). См. раздел ниже.
-- Deploy-job **не** checkout'ит репозиторий: artifact из `host-ci` → `download-artifact` → scp.
+- Deploy-job **не** checkout'ит репозиторий: artifact из `host-ci` → `download-artifact` → scp (VPS) или `deploy-github-pages` (Pages).
+- **GitHub Pages:** Settings → Pages → **Source: GitHub Actions** (не ветка `gh-pages`). Официальные actions: `configure-pages`, при необходимости `jekyll-build-pages`, `upload-pages-artifact`, `deploy-pages`; deploy-job — `permissions: pages: write`, `id-token: write`, `environment: github-pages`. Ветку `gh-pages` можно удалить после миграции.
 - Secrets deploy — `DEPLOY_SERVER_*`; test env (DB, auth) — опциональные secrets в `host-ci`.
 - До публикации site-core (локальный `file:`) consumer держит **self-contained** `.github/workflows/ci.yml`. Переключение — **шаг 3** миграции.
 
@@ -89,6 +91,8 @@ Symlink `current` на хостинге — обычный `ln -sfn` в shell п
 6. **Upload artifact** — `actions/upload-artifact` (paths — input `artifact_paths`)
 
 Deploy-static-releases (раннер GitHub): download artifact → scp → ssh. На хостинге по ssh: `releases/<timestamp>/` + `ln -sfn … current` + cleanup — без Actions на VPS.
+
+Deploy-github-pages (раннер GitHub): download artifact → `configure-pages` → [опц. `jekyll-build-pages`] → `upload-pages-artifact` → `deploy-pages` (environment `github-pages`).
 
 ## Релиз site-core
 
@@ -143,7 +147,7 @@ jobs:
 | Репозиторий | Деплой |
 | ----------- | ------ |
 | **site-core** | **не деплоится** — релиз по bump `version`, см. «Релиз site-core» |
-| **consumer** | по умолчанию после CI — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) или self-contained steps в `ci.yml` |
+| **consumer** | по умолчанию после CI — [`deploy-static-releases.yml`](../.github/workflows/deploy-static-releases.yml) (VPS) или [`deploy-github-pages.yml`](../.github/workflows/deploy-github-pages.yml) / self-contained steps в `ci.yml` |
 
 - Встроенные `[skip ci]` / `[ci skip]` GitHub **отменяют весь workflow** на push — наш `[skip` на job `ci` даёт тот же эффект для caller с `needs: ci`.
 - `[no-deploy]` и `[WIP]` — **кастомные** opt-out **только deploy**; CI всё равно выполняется. `[WIP]` — черновик в `main`: проверить, не выкатывать.

@@ -25,7 +25,13 @@ declare module 'posthtml-bem-linter' {
 declare module 'rolldown' {
 	export function defineConfig<T>(config: T): T;
 
+	type RolldownBuild = {
+		close(): Promise<void>;
+		generate(options: { format?: string; minify?: boolean }): Promise<{ output: Array<{ code: string }> }>;
+	};
+
 	type RolldownOptions = {
+		cwd?: string;
 		input?: string;
 		output?: {
 			file?: string;
@@ -36,4 +42,6 @@ declare module 'rolldown' {
 			alias?: Record<string, string>;
 		};
 	};
+
+	export function rolldown(options: RolldownOptions): Promise<RolldownBuild>;
 }

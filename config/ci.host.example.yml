@@ -37,8 +37,9 @@ jobs:
       scp_source: app/__/*,public/*,tools/prod/*
     secrets: inherit
 
-# --- GitHub Pages: peaceiris (deploy-static-releases.yml не подходит) ---
-# host-ci → artifact `public/` → download-artifact → peaceiris; без повторного npm ci/test.
+# --- GitHub Pages: deploy-github-pages.yml (deploy-static-releases.yml не подходит) ---
+# Settings → Pages → Source: GitHub Actions.
+# host-ci → artifact → download-artifact → configure-pages → [jekyll-build-pages] → upload-pages-artifact → deploy-pages.
 #
 # name: CI
 #
@@ -59,19 +60,11 @@ jobs:
 #   deploy:
 #     needs: ci
 #     if: ${{ !contains(github.event.head_commit.message, '[no-deploy]') && !contains(github.event.head_commit.message, '[WIP]') }}
-#     runs-on: ubuntu-latest
 #     permissions:
-#       contents: write
-#     steps:
-#       - name: Download artifact
-#         uses: actions/download-artifact@v8
-#         with:
-#           name: deploy-bundle
-#
-#       - name: Deploy to GitHub Pages
-#         uses: peaceiris/actions-gh-pages@v4.1.0
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           publish_dir: ./public
+#       id-token: write
+#       pages: write
+#     uses: <org>/site-core/.github/workflows/deploy-github-pages.yml@X.Y.Z
+#     with:
+#       source_path: public
 #
 # Роут /404.html в routes/index.js — build → public/404.html

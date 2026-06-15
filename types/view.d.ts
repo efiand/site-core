@@ -26,6 +26,19 @@ type PageAssetsOptions = {
 	pathname?: string;
 };
 
+type RenderPageAssetsFn = (options?: PageAssetsOptions) => Promise<string> | string;
+
+type CreateRenderInlinePageAssetsOptions = {
+	cssEntry?: string;
+	cwd?: string;
+	includeInlineMetrika?: boolean;
+	jsEntry?: string;
+};
+
+type InlineBundleOptions = {
+	cwd?: string;
+};
+
 type CreateRenderPageOptions = {
 	defaultOgImage?: string;
 	defaultOgImageHeight?: number;
@@ -38,6 +51,7 @@ type CreateRenderPageOptions = {
 	headExtras?: string;
 	htmlLang?: string;
 	htmlPrefix?: string;
+	renderPageAssetsFn?: RenderPageAssetsFn;
 	/** Контент страницы внутри `<body>`; **без** `<body>`, Metrika и `<html>`. */
 	renderLayout: (data: LayoutData) => string;
 };
