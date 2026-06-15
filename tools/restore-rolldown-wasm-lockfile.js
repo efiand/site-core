@@ -1,7 +1,7 @@
 /// <reference path="../types/index.d.ts" />
 
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -151,6 +151,17 @@ function lockfileHasSemverRangeForPackage(lock, packageName) {
 	return false;
 }
 
+/** @type {() => string} */
+function resolveHostCwd() {
+	const initCwd = process.env.INIT_CWD;
+
+	if (initCwd) {
+		return initCwd;
+	}
+
+	return process.cwd();
+}
+
 /** @type {(packageName: string, pinnedVersion: string, lock: { packages: PackageLockPackages }) => string} */
 function resolveTopLevelEmnapiVersion(packageName, pinnedVersion, lock) {
 	if (!lockfileHasSemverRangeForPackage(lock, packageName)) {
@@ -168,8 +179,13 @@ function resolveTopLevelEmnapiVersion(packageName, pinnedVersion, lock) {
  *
  * @type {(hostCwd?: string) => void}
  */
-function restoreRolldownWasmLockfile(hostCwd = process.cwd()) {
+function restoreRolldownWasmLockfile(hostCwd = resolveHostCwd()) {
 	const packageLockPath = path.join(hostCwd, 'package-lock.json');
+
+	if (!existsSync(packageLockPath)) {
+		return;
+	}
+
 	const lock = JSON.parse(readFileSync(packageLockPath, 'utf8'));
 	const wasmBinding = lock.packages[WASM_BINDING_KEY];
 
@@ -209,7 +225,7 @@ function sortDependencyRecord(dependencies) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-	restoreRolldownWasmLockfile(process.cwd());
+	restoreRolldownWasmLockfile();
 }
 
-export { restoreRolldownWasmLockfile };
+export { resolveHostCwd, restoreRolldownWasmLockfile };

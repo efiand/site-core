@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
-import { restoreRolldownWasmLockfile } from '../../tools/restore-rolldown-wasm-lockfile.js';
+import { resolveHostCwd, restoreRolldownWasmLockfile } from '../../tools/restore-rolldown-wasm-lockfile.js';
 
 const WASM_BINDING_KEY = 'node_modules/@rolldown/binding-wasm32-wasi';
 
@@ -83,6 +83,32 @@ describe('Инструменты/restore-rolldown-wasm-lockfile', () => {
 			});
 		} finally {
 			fs.rmSync(hostRoot, { force: true, recursive: true });
+		}
+	});
+
+	test('restoreRolldownWasmLockfile без package-lock.json не падает', () => {
+		const hostRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'site-core-wasm-lock-'));
+
+		try {
+			restoreRolldownWasmLockfile(hostRoot);
+		} finally {
+			fs.rmSync(hostRoot, { force: true, recursive: true });
+		}
+	});
+
+	test('resolveHostCwd предпочитает INIT_CWD', () => {
+		const previousInitCwd = process.env.INIT_CWD;
+
+		process.env.INIT_CWD = path.join(os.tmpdir(), 'consumer-root');
+
+		try {
+			assert.equal(resolveHostCwd(), process.env.INIT_CWD);
+		} finally {
+			if (previousInitCwd === undefined) {
+				delete process.env.INIT_CWD;
+			} else {
+				process.env.INIT_CWD = previousInitCwd;
+			}
 		}
 	});
 });

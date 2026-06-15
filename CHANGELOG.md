@@ -2,6 +2,12 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.2.2] - 2026-06-15
+
+### Fixed
+
+- [`tools/restore-rolldown-wasm-lockfile.js`](tools/restore-rolldown-wasm-lockfile.js) (`restoreRolldownWasmLockfile`): при установке site-core из git в `node_modules` читает `package-lock.json` хоста (`INIT_CWD`), а не несуществующий lock внутри пакета.
+
 ## [1.2.1] - 2026-06-15
 
 ### Changed
