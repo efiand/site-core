@@ -150,6 +150,17 @@ function collectJsFiles(dir, root, out = []) {
 	return out;
 }
 
+/** @param {string[]} names @param {string[]} expected */
+function findFirstOrderMismatch(names, expected) {
+	for (let index = 0; index < names.length; index++) {
+		if (names[index] !== expected[index]) {
+			return { actual: names[index], expected: expected[index], index: index + 1 };
+		}
+	}
+
+	return null;
+}
+
 /** @param {string} source @param {number} functionLineStart */
 function findFunctionBlockStart(source, functionLineStart) {
 	const lookback = source.slice(Math.max(0, functionLineStart - 4096), functionLineStart);
@@ -309,16 +320,39 @@ function findParameterListEnd(source, fromIndex) {
 	return -1;
 }
 
+/** @param {string} message */
+function formatErrorHeading(message) {
+	return `❌ ${message}`;
+}
+
+/** @param {string} filePath */
+function formatFilePath(filePath) {
+	return filePath.split(path.sep).join('/');
+}
+
 /** @param {FunctionOrderViolation[]} orderViolations @param {FunctionSpacingViolation[]} spacingViolations @param {JsdocFormattingViolation[]} jsdocViolations */
 function formatViolations(orderViolations, spacingViolations, jsdocViolations) {
 	/** @type {string[]} */
 	const lines = [];
+	const errorCount = orderViolations.length + spacingViolations.length + jsdocViolations.length;
 
 	if (orderViolations.length) {
-		lines.push(`Top-level functions must be in alphabetical order (${orderViolations.length} file(s)):`);
+		lines.push(
+			formatErrorHeading(
+				`error: check-function-order — top-level functions must be in alphabetical order (${orderViolations.length} file(s))`,
+			),
+		);
 
 		for (const { expected, file, names } of orderViolations) {
-			lines.push('', file, `  current:  ${names.join(', ')}`, `  expected: ${expected.join(', ')}`);
+			const mismatch = findFirstOrderMismatch(names, expected);
+
+			lines.push('', `  ❌ ${formatFilePath(file)}`);
+
+			if (mismatch) {
+				lines.push(`    position ${mismatch.index}: ${mismatch.actual} — expected ${mismatch.expected}`);
+			}
+
+			lines.push(`    current:  ${names.join(', ')}`, `    expected: ${expected.join(', ')}`);
 		}
 	}
 
@@ -327,10 +361,14 @@ function formatViolations(orderViolations, spacingViolations, jsdocViolations) {
 			lines.push('');
 		}
 
-		lines.push(`Add a blank line between top-level functions (${spacingViolations.length} file(s)):`);
+		lines.push(
+			formatErrorHeading(
+				`error: check-function-order — add a blank line between top-level functions (${spacingViolations.length} file(s))`,
+			),
+		);
 
 		for (const { after, before, file } of spacingViolations) {
-			lines.push('', file, `  between: ${before} → ${after}`);
+			lines.push('', `  ❌ ${formatFilePath(file)}`, `    between: ${before} → ${after}`);
 		}
 	}
 
@@ -339,11 +377,17 @@ function formatViolations(orderViolations, spacingViolations, jsdocViolations) {
 			lines.push('');
 		}
 
-		lines.push(`Fix JSDoc formatting (${jsdocViolations.length} issue(s)):`);
+		lines.push(
+			formatErrorHeading(`error: check-function-order — fix JSDoc formatting (${jsdocViolations.length} issue(s))`),
+		);
 
 		for (const { file, line, message } of jsdocViolations) {
-			lines.push('', file, `  line ${line}: ${message}`);
+			lines.push('', `  ❌ ${formatFilePath(file)}`, `    line ${line}: ${message}`);
 		}
+	}
+
+	if (errorCount) {
+		lines.push('', `Found ${errorCount} error${errorCount === 1 ? '' : 's'}.`);
 	}
 
 	return lines.join('\n');
@@ -441,9 +485,12 @@ export {
 	checkFunctionOrder,
 	checkJsdocFormatting,
 	collectJsFiles,
+	findFirstOrderMismatch,
 	findFunctionBlockStart,
 	findFunctionBodyEnd,
 	findParameterListEnd,
+	formatErrorHeading,
+	formatFilePath,
 	formatViolations,
 	getTopLevelFunctionNames,
 	getTopLevelFunctions,

@@ -116,6 +116,7 @@ Job `release`: tag `X.Y.Z` (= `version`) + GitHub Release. Tag **уже есть
 - **Перед bump `version`** — `git status` и `git diff` (staged + unstaged): новая секция описывает только изменения, которые войдут в релизный коммит; не переносить в CHANGELOG то, что уже в предыдущем релизе на `main`.
 - При bump `version` — новая секция `## [X.Y.Z] - YYYY-MM-DD` **сразу под** вводным абзацем (сверху, новые версии выше старых).
 - Категории: `Added`, `Changed`, `Fixed`, `Removed` — только непустые; пункты для **потребителей** (хосты, bin, breaking, заметное поведение CLI), без перечисления каждого внутреннего рефакторинга.
+- **Пути к файлам site-core** — markdown-ссылка от корня репозитория: `[tools/foo.js](tools/foo.js)` (на GitHub ведёт в исходник). Импорт `#core/…` в тексте — ссылка на путь **без** префикса: `#core/common/lib/foo.js` → `[common/lib/foo.js](common/lib/foo.js)`. Файлы **вне** репозитория (шаблоны хоста вроде `app/…`, `src/types/view.d.ts`, `ci.yml` consumer-проекта) — inline-код без ссылки. Если пункт начинается с экспорта или bin без явного пути — дай ссылку на основной файл модуля (например `generateHostFonts` → `tools/generate-host-fonts.js`, `site-core-upgrade` → `tools/upgrade.js`).
 - Запись в CHANGELOG — **в том же коммите/PR**, что и bump `version`; job `release` файл не генерирует.
 
 ### package-lock.json

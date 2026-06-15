@@ -3,6 +3,7 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const WASM_BINDING_KEY = 'node_modules/@rolldown/binding-wasm32-wasi';
 
@@ -56,6 +57,11 @@ function buildLockEntryFromSource(version, sourceEntry) {
 	return Object.fromEntries(fields);
 }
 
+/** @type {(packageName: string) => string} */
+function fetchLatestPackageVersion(packageName) {
+	return JSON.parse(execSync(`npm view ${packageName} version --json`, { encoding: 'utf8' }));
+}
+
 /** @type {(name: string, version: string) => NpmPackageMeta} */
 function fetchPackageMeta(name, version) {
 	return JSON.parse(execSync(`npm view ${name}@${version} --json`, { encoding: 'utf8' }));
@@ -101,6 +107,61 @@ function isCanonicalLockEntry(entry, version) {
 	return dependencyKeys.every((key, index) => key === [...dependencyKeys].sort()[index]);
 }
 
+/** @type {(left: string, right: string) => boolean} */
+function isNewerVersion(left, right) {
+	const leftParts = left.split('.').map(Number);
+	const rightParts = right.split('.').map(Number);
+
+	for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index++) {
+		const leftPart = leftParts[index] ?? 0;
+		const rightPart = rightParts[index] ?? 0;
+
+		if (leftPart !== rightPart) {
+			return leftPart > rightPart;
+		}
+	}
+
+	return false;
+}
+
+/** @type {(lock: { packages: PackageLockPackages }, packageName: string) => boolean} */
+function lockfileHasSemverRangeForPackage(lock, packageName) {
+	for (const packageEntry of Object.values(lock.packages)) {
+		const dependencies = packageEntry?.dependencies;
+
+		if (dependencies && typeof dependencies === 'object') {
+			const dependencyRange = /** @type {Record<string, string>} */ (dependencies)[packageName];
+
+			if (typeof dependencyRange === 'string' && /^[\^~]/u.test(dependencyRange)) {
+				return true;
+			}
+		}
+
+		const peerDependencies = packageEntry?.peerDependencies;
+
+		if (peerDependencies && typeof peerDependencies === 'object') {
+			const peerRange = /** @type {Record<string, string>} */ (peerDependencies)[packageName];
+
+			if (typeof peerRange === 'string' && /^[\^~]/u.test(peerRange)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/** @type {(packageName: string, pinnedVersion: string, lock: { packages: PackageLockPackages }) => string} */
+function resolveTopLevelEmnapiVersion(packageName, pinnedVersion, lock) {
+	if (!lockfileHasSemverRangeForPackage(lock, packageName)) {
+		return pinnedVersion;
+	}
+
+	const latestVersion = fetchLatestPackageVersion(packageName);
+
+	return isNewerVersion(latestVersion, pinnedVersion) ? latestVersion : pinnedVersion;
+}
+
 /**
  * npm i на текущей ОС вырезает optional wasm-зависимости rolldown (@emnapi/*) из lockfile.
  * Дописываем их по версиям из @rolldown/binding-wasm32-wasi — package.json не трогаем.
@@ -118,10 +179,11 @@ function restoreRolldownWasmLockfile(hostCwd = process.cwd()) {
 
 	const { '@emnapi/core': coreVersion, '@emnapi/runtime': runtimeVersion } = wasmBinding.dependencies;
 
-	for (const [packageName, version] of [
+	for (const [packageName, pinnedVersion] of [
 		['@emnapi/core', coreVersion],
 		['@emnapi/runtime', runtimeVersion],
 	]) {
+		const version = resolveTopLevelEmnapiVersion(packageName, pinnedVersion, lock);
 		const key = `node_modules/${packageName}`;
 		const existing = lock.packages[key];
 
@@ -130,7 +192,8 @@ function restoreRolldownWasmLockfile(hostCwd = process.cwd()) {
 		}
 
 		const nested = lock.packages[`${WASM_BINDING_KEY}/node_modules/${packageName}`];
-		lock.packages = insertPackageInKeyOrder(lock.packages, key, buildLockEntry(packageName, version, nested));
+		const sourceEntry = nested?.version === version ? nested : undefined;
+		lock.packages = insertPackageInKeyOrder(lock.packages, key, buildLockEntry(packageName, version, sourceEntry));
 	}
 
 	writeFileSync(packageLockPath, `${JSON.stringify(lock, null, '\t')}\n`);
@@ -143,6 +206,10 @@ function sortDependencyRecord(dependencies) {
 			.sort()
 			.map((dependencyName) => [dependencyName, dependencies[dependencyName]]),
 	);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+	restoreRolldownWasmLockfile(process.cwd());
 }
 
 export { restoreRolldownWasmLockfile };

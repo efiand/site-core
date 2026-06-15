@@ -31,6 +31,16 @@ function generateHostFonts(hostRoot) {
 	const cssPath = path.join(hostRoot, 'src', 'client', 'css', 'common', 'fonts.css');
 	const jsPath = path.join(coreRoot, 'common', 'generated', 'fonts.js');
 
+	if (!hasHostFontFiles(hostRoot)) {
+		removeStaleFontsCss(cssPath);
+		writeFontsRegistry(jsPath, []);
+
+		console.info('Skipped host fonts.css (no .woff2 in public/fonts)');
+		console.info(`Generated ${path.relative(coreRoot, jsPath)}`);
+
+		return { cssPath, fonts: [], jsPath };
+	}
+
 	if (!fs.existsSync(fontsDir)) {
 		fs.mkdirSync(fontsDir, { recursive: true });
 	}
@@ -78,6 +88,17 @@ function generateHostFonts(hostRoot) {
 	console.info(`Generated ${path.relative(coreRoot, jsPath)}`);
 
 	return { cssPath, fonts, jsPath };
+}
+
+/** @type {(hostRoot: string) => boolean} */
+function hasHostFontFiles(hostRoot) {
+	const fontsDir = path.join(hostRoot, 'public', 'fonts');
+
+	if (!fs.existsSync(fontsDir)) {
+		return false;
+	}
+
+	return fs.readdirSync(fontsDir).some((filename) => filename.toLowerCase().endsWith('.woff2'));
 }
 
 /** @type {(filename: string) => { canonicalName: string; familyName: string; italic: boolean; weight: number } | null} */
@@ -162,6 +183,13 @@ function parseFontStem(stem) {
 	return null;
 }
 
+/** @type {(cssPath: string) => void} */
+function removeStaleFontsCss(cssPath) {
+	if (fs.existsSync(cssPath)) {
+		fs.rmSync(cssPath);
+	}
+}
+
 /** @type {(font: { canonicalName: string; familyName: string; italic: boolean; weight: number }) => string} */
 function renderFontFace({ canonicalName, familyName, italic, weight }) {
 	return `@font-face {
@@ -207,4 +235,11 @@ export const fonts = ${fontsExport};
 	fs.writeFileSync(jsPath, js, 'utf8');
 }
 
-export { generateHostFonts, parseFontFilename, resolveCoreRoot, writeFontsRegistry };
+export {
+	generateHostFonts,
+	hasHostFontFiles,
+	parseFontFilename,
+	removeStaleFontsCss,
+	resolveCoreRoot,
+	writeFontsRegistry,
+};

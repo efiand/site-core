@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
-import { parseFontFilename } from '../../tools/generate-host-fonts.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { after, describe, test } from 'node:test';
+import { generateHostFonts, hasHostFontFiles, parseFontFilename } from '../../tools/generate-host-fonts.js';
 
 describe('Инструменты/generate-host-fonts', () => {
 	test('parseFontFilename сохраняет канонические имена', () => {
@@ -36,6 +39,44 @@ describe('Инструменты/generate-host-fonts', () => {
 			familyName: 'Noto Sans',
 			italic: false,
 			weight: 600,
+		});
+	});
+
+	describe('generateHostFonts', () => {
+		/** @type {string} */
+		let hostRoot;
+
+		after(() => {
+			if (hostRoot) {
+				fs.rmSync(hostRoot, { force: true, recursive: true });
+			}
+		});
+
+		test('Без public/fonts не создаёт fonts.css и пустой каталог fonts', () => {
+			hostRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'site-core-fonts-'));
+			const cssPath = path.join(hostRoot, 'src', 'client', 'css', 'common', 'fonts.css');
+			const fontsDir = path.join(hostRoot, 'public', 'fonts');
+
+			assert.equal(hasHostFontFiles(hostRoot), false);
+
+			const result = generateHostFonts(hostRoot);
+
+			assert.deepEqual(result.fonts, []);
+			assert.equal(fs.existsSync(cssPath), false);
+			assert.equal(fs.existsSync(fontsDir), false);
+		});
+
+		test('Удаляет устаревший fonts.css, если .woff2 в каталоге нет', () => {
+			hostRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'site-core-fonts-'));
+			const cssPath = path.join(hostRoot, 'src', 'client', 'css', 'common', 'fonts.css');
+
+			fs.mkdirSync(path.dirname(cssPath), { recursive: true });
+			fs.writeFileSync(cssPath, '@font-face {}', 'utf8');
+			fs.mkdirSync(path.join(hostRoot, 'public', 'fonts'), { recursive: true });
+
+			generateHostFonts(hostRoot);
+
+			assert.equal(fs.existsSync(cssPath), false);
 		});
 	});
 });

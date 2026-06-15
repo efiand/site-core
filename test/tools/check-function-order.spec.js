@@ -8,6 +8,8 @@ import {
 	checkFileFunctionOrder,
 	checkFileJsdocFormatting,
 	checkFunctionOrder,
+	findFirstOrderMismatch,
+	formatViolations,
 	getTopLevelFunctionNames,
 	getTopLevelFunctions,
 } from '../../tools/check-function-order.js';
@@ -148,6 +150,28 @@ function trackEvent() {}
 			['initYandexMetrika', 'trackPageView'],
 		);
 		assert.deepEqual(checkFileFunctionBlankLines('client/lib/init-yandex-metrika.js', process.cwd()), []);
+	});
+
+	it('formatViolations помечает нарушения как error', () => {
+		const output = formatViolations(
+			[{ expected: ['alpha', 'zebra'], file: 'tools/wrong.js', names: ['zebra', 'alpha'] }],
+			[],
+			[],
+		);
+
+		assert.match(output, /^❌ error: check-function-order/u);
+		assert.match(output, /❌ tools\/wrong\.js/u);
+		assert.match(output, /position 1: zebra — expected alpha/u);
+		assert.match(output, /Found 1 error\./u);
+	});
+
+	it('findFirstOrderMismatch возвращает первое расхождение', () => {
+		assert.deepEqual(findFirstOrderMismatch(['zebra', 'alpha'], ['alpha', 'zebra']), {
+			actual: 'zebra',
+			expected: 'alpha',
+			index: 1,
+		});
+		assert.strictEqual(findFirstOrderMismatch(['alpha', 'beta'], ['alpha', 'beta']), null);
 	});
 
 	it('checkFileJsdocFormatting ловит разорванный /** @type и пустую строку перед */', () => {
