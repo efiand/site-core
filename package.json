@@ -11,22 +11,22 @@
 		"site-core-upgrade": "./tools/upgrade.js"
 	},
 	"dependencies": {
-		"@biomejs/biome": "2.5.0",
-		"@dotenvx/dotenvx": "1.71.3",
+		"@biomejs/biome": "2.5.1",
+		"@dotenvx/dotenvx": "1.75.1",
 		"@fastify/pre-commit": "2.2.1",
 		"@types/formidable": "3.5.1",
 		"@types/html-minifier-terser": "7.0.2",
 		"@types/jsdom": "28.0.3",
 		"@types/jsonwebtoken": "9.0.10",
-		"@types/node": "25.9.3",
+		"@types/node": "26.0.1",
 		"@types/postcss-import": "14.0.3",
 		"@types/postcss-url": "10.0.4",
 		"bcrypt-ts": "8.0.1",
 		"cssnano": "8.0.2",
-		"dompurify": "3.4.10",
+		"dompurify": "3.4.11",
 		"fast-xml-validator": "1.1.1",
 		"formidable": "3.5.4",
-		"happy-dom": "20.10.3",
+		"happy-dom": "20.10.6",
 		"html-minifier-terser": "7.2.0",
 		"html-validate": "11.5.3",
 		"hyphen": "1.14.1",
@@ -39,9 +39,9 @@
 		"postcss-import": "16.1.1",
 		"postcss-sort-media-queries": "6.6.2",
 		"postcss-url": "10.1.4",
-		"posthtml-bem-linter": "0.1.8",
-		"rolldown": "1.1.1",
-		"sharp": "0.35.1",
+		"posthtml-bem-linter": "1.0.0",
+		"rolldown": "1.1.3",
+		"sharp": "0.35.2",
 		"tinymce": "8.6.0",
 		"typescript": "6.0.3",
 		"typograf": "7.7.0"
@@ -55,6 +55,7 @@
 		"./tools/*": "./tools/*",
 		"./types/*": "./types/*"
 	},
+	"homepage": "https://efiand.github.io/site-core",
 	"imports": {
 		"#core/client/*": "./client/*",
 		"#core/common/*": "./common/*",
@@ -68,6 +69,7 @@
 	],
 	"private": true,
 	"scripts": {
+		"build": "node ./tools/post-build.js",
 		"lint": "npm run lint-static-check && biome check",
 		"lint-format": "npm run lint-static-check && biome check --write",
 		"lint-static-check": "npm run type-check && node ./tools/check-function-order.js",
@@ -77,5 +79,5 @@
 		"upgrade": "node ./tools/upgrade.js"
 	},
 	"type": "module",
-	"version": "1.2.2"
+	"version": "1.3.0"
 }

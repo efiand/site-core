@@ -2,7 +2,7 @@
 
 import { buildAssetQuery } from '#core/common/lib/asset-version.js';
 import { getSiteConfig } from '#core/common/lib/site-config.js';
-import { renderYandexMetrikaScript } from '#core/common/templates/yandex-metrika-script.js';
+import { renderClientEntryScript } from '#core/common/templates/client-entry-script.js';
 
 const DEFAULT_IMPORTMAP = {
 	imports: {
@@ -38,7 +38,7 @@ function renderPageAssets({
 
 	return /* html */ `
 		<link rel="stylesheet" href="/bundles/${cssEntry}.css${buildAssetQuery(version.CSS)}">
-		${renderYandexMetrikaScript({ pathname })}
+		${renderClientEntryScript({ pathname })}
 	`;
 }
 

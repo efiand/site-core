@@ -11,10 +11,3 @@ type YandexMetrikaOptions = {
 	counterId?: number;
 	pathname?: string;
 };
-
-type YandexMetrikaScriptOptions = {
-	isDev?: boolean;
-	pathname?: string;
-};
-
-type YandexMetrikaInlineOptions = YandexMetrikaOptions;

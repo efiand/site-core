@@ -16,6 +16,7 @@ describe('Общее/site-config/Страницы', () => {
 			pubDate: '',
 			publicPages: [],
 			routes: {},
+			yandexMetrikaId: 0,
 		});
 	});
 
@@ -86,6 +87,16 @@ describe('Общее/site-config/Страницы', () => {
 		process.env.DEV = '1';
 		setSiteConfig({});
 		assert.equal(getSiteConfig().isDev, true);
+	});
+
+	test('yandexMetrikaId обнуляется в dev', () => {
+		delete process.env.DEV;
+		setSiteConfig({ yandexMetrikaId: 102299682 });
+		assert.equal(getSiteConfig().yandexMetrikaId, 102299682);
+
+		process.env.DEV = '1';
+		setSiteConfig({ yandexMetrikaId: 102299682 });
+		assert.equal(getSiteConfig().yandexMetrikaId, 0);
 	});
 
 	test('hasDb по умолчанию false', () => {

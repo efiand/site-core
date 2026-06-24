@@ -2,6 +2,31 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.3.0] - 2026-06-24
+
+### Added
+
+- [`common/templates/client-entry-script.js`](common/templates/client-entry-script.js) (`renderClientEntryScript`) — prod `<script type="module" src="…/main.js">`; dev — `/client/entries/main.js`; без `/__*`.
+- [`tools/post-build.js`](tools/post-build.js) (`runPostBuild`), `npm run build` — сборка `dist/` для GitHub Pages (Jekyll: README, CHANGELOG, `docs/`).
+- [`docs/migration.md`](docs/migration.md), [`docs/architecture.md`](docs/architecture.md) — миграция consumer-проекта и обзор архитектуры.
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml): job `deploy-docs` — публикация документации на GitHub Pages после push в `main` (opt-out: `[no-deploy]`, `[WIP]`).
+
+### Changed
+
+- [`common/lib/site-config.js`](common/lib/site-config.js) (`setSiteConfig`): в dev обнуляет `yandexMetrikaId` — Metrika и guard'ы опираются на `0`, без отдельных `isDev`-проверок.
+- [`common/templates/page-assets.js`](common/templates/page-assets.js) (`renderPageAssets`): client entry через `renderClientEntryScript` вместо `renderYandexMetrikaScript`.
+- [`common/templates/render-inline-page-assets.js`](common/templates/render-inline-page-assets.js) (`createRenderInlinePageAssets`): без inline Metrika в `<head>`; init — только client [`initYandexMetrika`](client/lib/init-yandex-metrika.js) в `src/client/entries/main.js`.
+- [README.md](README.md): badges CI/docs, секция «Документация», ссылка на [GitHub Pages](https://efiand.github.io/site-core); раздел Yandex Metrika — `renderClientEntryScript`, единый entry `main.js` с `initYandexMetrika`.
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/host-ci.yml`](.github/workflows/host-ci.yml): `actions/checkout@v7`.
+
+### Removed
+
+- [`common/lib/yandex-metrika-script-url.js`](common/lib/yandex-metrika-script-url.js) (`buildYandexMetrikaScriptUrl`) — вместо него `renderClientEntryScript`.
+- [`common/templates/yandex-metrika-script.js`](common/templates/yandex-metrika-script.js) (`renderYandexMetrikaScript`) — вместо него `renderClientEntryScript`.
+- [`common/templates/yandex-metrika-inline.js`](common/templates/yandex-metrika-inline.js) (`renderYandexMetrikaInline`, `renderYandexMetrikaInlineHead`, `renderYandexMetrikaInlineScript`).
+- [`common/templates/render-inline-page-assets.js`](common/templates/render-inline-page-assets.js): опция `includeInlineMetrika`.
+- Хост: убрать отдельный `src/client/entries/metrika.js` и импорты `renderYandexMetrikaScript` / `buildYandexMetrikaScriptUrl` / `renderYandexMetrikaInline*`; client init Metrika — в `main.js` (`configure-site` + `initYandexMetrika`).
+
 ## [1.2.2] - 2026-06-15
 
 ### Fixed

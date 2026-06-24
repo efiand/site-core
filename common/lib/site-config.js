@@ -96,6 +96,10 @@ function setSiteConfig(patch) {
 	} else {
 		state.isDev = Boolean(window.DEV);
 	}
+
+	if (state.isDev) {
+		state.yandexMetrikaId = 0;
+	}
 }
 
 export { getSiteConfig, setSiteConfig };

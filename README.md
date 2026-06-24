@@ -1,6 +1,19 @@
 # site-core
 
+[![CI](https://github.com/efiand/site-core/actions/workflows/ci.yml/badge.svg)](https://github.com/efiand/site-core/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://efiand.github.io/site-core)
+
 Shared-библиотека для vanilla JS MPA/fullstack consumer-проектов (отдельный git-репозиторий на каждый сайт).
+
+## Документация
+
+| Раздел | Описание |
+| --- | --- |
+| [Миграция consumer-проекта](docs/migration.md) | пошаговый перенос сайта на site-core |
+| [Архитектура](docs/architecture.md) | слои пакета, SSR, client, Metrika, статика |
+| [Changelog](CHANGELOG.md) | история версий |
+
+На [GitHub Pages](https://efiand.github.io/site-core): `/docs/migration`, `/docs/architecture`, `/CHANGELOG`.
 
 ## Подключение
 
@@ -140,19 +153,15 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 ## Yandex Metrika
 
-| Слой   | Модуль                                                                                      | Назначение                                                                                                                                                                                              |
-| ------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| SSR    | [`renderYandexMetrika`](common/templates/yandex-metrika.js)                                 | только `<noscript>` + комментарии                                                                                                                                                                       |
-| SSR    | [`renderYandexMetrikaScript`](common/templates/yandex-metrika-script.js)                    | `<script type="module" src="…/metrika.js">`; URL — [`buildYandexMetrikaScriptUrl`](common/lib/yandex-metrika-script-url.js), guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js) |
-| Client | [`initYandexMetrika`](client/lib/init-yandex-metrika.js)                                    | загрузка tag.js, `ym(…, "init")`, очередь hits                                                                                                                                                          |
-| Client | [`loadScript`](client/lib/load-script.js)                                                   | однократная загрузка внешнего `<script>` по URL                                                                                                                                                         |
-| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | конфигурация хоста (server + client); init — `app/common/configure-site.js`                                                                                                                             |
-| SSR    | [`renderDocumentTitle`](common/templates/document-title.js)                                 | `parts.join('                                                                                                                                                                                           | ') + projectTitle`из`getSiteConfig()` |
-| Static | [`STATIC_MIME_TYPES`](common/lib/static-mime-types.js)                                      | MIME dev/static middleware + `staticExtensions`                                                                                                                                                         |
-| Хост   | `src/client/entries/metrika.js`                                                             | `import '#common/configure-site.js'` + `initYandexMetrika()`                                                                                                                                            |
-| Хост   | `page.js` / assets                                                                          | `renderYandexMetrikaScript({ isDev, pathname })`; CSS — `buildAssetQuery(getSiteConfig().version.CSS)`                                                                                                  |
+| Слой   | Модуль                                                                                      | Назначение                                                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SSR    | [`renderYandexMetrika`](common/templates/yandex-metrika.js)                                 | только `<noscript>` + комментарии; guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js)                                    |
+| SSR    | [`renderClientEntryScript`](common/templates/client-entry-script.js)                        | prod `<script type="module" src="…/main.js">`; dev — `/client/entries/main.js`; без `/__*`            |
+| Client | [`initYandexMetrika`](client/lib/init-yandex-metrika.js)                                    | загрузка tag.js, `ym(…, "init")`, очередь hits                                                                                                   |
+| Client | [`loadScript`](client/lib/load-script.js)                                                   | однократная загрузка внешнего `<script>` по URL                                                                                                  |
+| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | `yandexMetrikaId` обнуляется в dev; init — `app/common/configure-site.js`                                                                       |
 
-На `/__*` — без Metrika (ни script, ни noscript). Inline `<script>` с init в SSR **не используем**.
+На `/__*` — без Metrika (noscript) и без client entry. Inline `<script>` с init в SSR **не используем**.
 
 ## `buildStaticPages`
 
@@ -201,5 +210,10 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 npm install
 npm run lint
 npm test
+npm run build    # dist/ для GitHub Pages
 npm run upgrade   # deps + .github/workflows/ site-core
 ```
+
+## Changelog
+
+См. [CHANGELOG.md](CHANGELOG.md) (локальный файл; на [GitHub Pages](https://efiand.github.io/site-core/CHANGELOG) — тот же путь).

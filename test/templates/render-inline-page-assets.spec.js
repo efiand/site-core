@@ -39,14 +39,15 @@ describe('Общее/Inline-ассеты страницы', () => {
 		assert.match(markup, /color:\s*red/);
 		assert.match(markup, /<script type="module">/);
 		assert.match(markup, /fixtureValue/);
-		assert.match(markup, /99938263/);
+		assert.doesNotMatch(markup, /ym\(/);
 	});
 
-	test('createRenderInlinePageAssets на служебных маршрутах без метрики', async () => {
+	test('createRenderInlinePageAssets на служебных маршрутах отдаёт inline style и script', async () => {
 		const renderInlinePageAssets = createRenderInlinePageAssets({ cwd: fixtureRoot });
 		const markup = await renderInlinePageAssets({ pathname: '/__/404' });
 
 		assert.match(markup, /<style>/);
+		assert.match(markup, /<script type="module">/);
 		assert.doesNotMatch(markup, /ym\(/);
 	});
 });

@@ -141,7 +141,7 @@ describe('Общее/Страница', () => {
 		assert.doesNotMatch(html, /rel="canonical"/);
 	});
 
-	test('createRenderPage пропускает метрику на служебных страницах', async () => {
+	test('createRenderPage пропускает metrika и client entry на служебных страницах', async () => {
 		const renderPage = createRenderPage({
 			renderLayout: () => '',
 		});
@@ -153,6 +153,7 @@ describe('Общее/Страница', () => {
 		});
 
 		assert.doesNotMatch(html, /Yandex\.Metrika/);
+		assert.doesNotMatch(html, /\/bundles\/main\.js/);
 	});
 
 	test('createRenderPage на главной рендерит document, title, og:url и canonical', async () => {

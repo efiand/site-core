@@ -28,10 +28,13 @@ type PageAssetsOptions = {
 
 type RenderPageAssetsFn = (options?: PageAssetsOptions) => Promise<string> | string;
 
+type ClientEntryScriptOptions = {
+	pathname?: string;
+};
+
 type CreateRenderInlinePageAssetsOptions = {
 	cssEntry?: string;
 	cwd?: string;
-	includeInlineMetrika?: boolean;
 	jsEntry?: string;
 };
 

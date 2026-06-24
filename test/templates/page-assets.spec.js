@@ -17,7 +17,7 @@ describe('Общее/Ассеты страницы', () => {
 		setSiteConfig({ yandexMetrikaId: 0 });
 	});
 
-	test('renderPageAssets в dev отдаёт importmap и reload без метрики', () => {
+	test('renderPageAssets в dev отдаёт importmap и reload без client entry', () => {
 		process.env.DEV = '1';
 		setSiteConfig({});
 
@@ -27,10 +27,10 @@ describe('Общее/Ассеты страницы', () => {
 		assert.match(markup, /type="importmap"/);
 		assert.match(markup, /window\.DEV=1/);
 		assert.match(markup, /EventSource\('\/dev\/watch'\)/);
-		assert.doesNotMatch(markup, /metrika/);
+		assert.doesNotMatch(markup, /\/bundles\/main\.js/);
 	});
 
-	test('renderPageAssets в prod отдаёт versioned css и метрику', () => {
+	test('renderPageAssets в prod отдаёт versioned css и client entry', () => {
 		const markup = renderPageAssets({ pathname: '/' });
 
 		assert.match(markup, new RegExp(`/bundles/main\\.css${buildAssetQuery(5).replace('?', '\\?')}`));
@@ -38,10 +38,10 @@ describe('Общее/Ассеты страницы', () => {
 		assert.doesNotMatch(markup, /window\.DEV/);
 	});
 
-	test('renderPageAssets на служебных маршрутах в prod без метрики', () => {
+	test('renderPageAssets на служебных маршрутах в prod без client entry', () => {
 		const markup = renderPageAssets({ pathname: '/__/404' });
 
 		assert.match(markup, /\/bundles\/main\.css/);
-		assert.doesNotMatch(markup, /metrika/);
+		assert.doesNotMatch(markup, /\/bundles\/main\.js/);
 	});
 });

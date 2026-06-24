@@ -9,7 +9,7 @@ setSiteConfig({
 		CSS: 1,
 		JS: 1,
 	},
-	yandexMetrikaId: 12345678,
+	yandexMetrikaId: 12345678, // prod-id; в dev setSiteConfig обнуляет
 });
 
 // privacyRevisionDate: '2026-06-09', // SiteDatetimeInput — тот же формат, что date в renderTimeTag
