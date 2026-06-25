@@ -2,6 +2,12 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.4.1] - 2026-06-25
+
+### Fixed
+
+- [`common/templates/cookie-consent-settings-control.d.ts`](common/templates/cookie-consent-settings-control.d.ts) — декларация для `renderCookieConsentSettingsControl` (type-check хоста).
+
 ## [1.4.0] - 2026-06-25
 
 ### Added
