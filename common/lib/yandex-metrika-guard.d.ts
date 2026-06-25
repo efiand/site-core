@@ -2,6 +2,17 @@
 
 declare function resolveYandexMetrikaCounterId(counterId?: number): number;
 
-declare function shouldIncludeYandexMetrika(options?: Pick<YandexMetrikaOptions, 'counterId' | 'pathname'>): boolean;
+declare function getCookieConsentPathCandidates(pathname?: string, requestPathname?: string): string[];
 
-export { resolveYandexMetrikaCounterId, shouldIncludeYandexMetrika };
+declare function isExcludedCookieConsentPath(pathname?: string, requestPathname?: string): boolean;
+
+declare function shouldIncludeYandexMetrika(
+	options?: Pick<YandexMetrikaOptions, 'counterId' | 'pathname' | 'requestPathname'>,
+): boolean;
+
+export {
+	getCookieConsentPathCandidates,
+	isExcludedCookieConsentPath,
+	resolveYandexMetrikaCounterId,
+	shouldIncludeYandexMetrika,
+};

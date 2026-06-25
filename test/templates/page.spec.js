@@ -157,6 +157,26 @@ describe('Общее/Страница', () => {
 		assert.doesNotMatch(html, /\/bundles\/main\.js/);
 	});
 
+	test('createRenderPage пропускает cookie-баннер при excludePathnamePrefixes по ogPathname', async () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 102299682,
+		});
+
+		const renderPage = createRenderPage({
+			renderLayout: () => '',
+		});
+
+		const html = await renderPage({
+			heading: 'Глава',
+			ogPathname: '/manuscript/mad/1',
+			pageTemplate: '',
+			pathname: '/mad/1',
+		});
+
+		assert.doesNotMatch(html, /class="cookie-consent"/);
+	});
+
 	test('createRenderPage на главной рендерит document, title, og:url и canonical', async () => {
 		const renderPage = createRenderPage({
 			renderLayout: () => '',

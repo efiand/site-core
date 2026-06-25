@@ -5,8 +5,8 @@ import { getCookieConsentTexts } from '#core/common/lib/cookie-consent-texts.js'
 import { shouldIncludeYandexMetrika } from '#core/common/lib/yandex-metrika-guard.js';
 
 /** @type {(options?: CookieConsentSettingsControlOptions) => string} */
-function renderCookieConsentSettingsControl({ className = '', pathname = '' } = {}) {
-	if (!shouldIncludeYandexMetrika({ pathname })) {
+function renderCookieConsentSettingsControl({ className = '', pathname = '', requestPathname = '' } = {}) {
+	if (!shouldIncludeYandexMetrika({ pathname, requestPathname })) {
 		return '';
 	}
 

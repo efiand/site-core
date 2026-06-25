@@ -124,4 +124,39 @@ describe('Клиент/init-cookie-consent', () => {
 		assert.ok(document.querySelector('.cookie-consent')?.hasAttribute('hidden'));
 		assert.equal(document.querySelector('[data-cookie-consent-settings]')?.hidden, false);
 	});
+
+	test('excludePathnamePrefixes скрывает UI, но загружает Metrika при accepted', async () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 99938263,
+		});
+		// biome-ignore lint/suspicious/noDocumentCookie: cookie mock in test
+		document.cookie = `${COOKIE_CONSENT_COOKIE_NAME}=${COOKIE_CONSENT_VALUE_ACCEPTED}`;
+		Object.defineProperty(window.location, 'pathname', {
+			configurable: true,
+			value: '/manuscript/mad/1',
+		});
+
+		initCookieConsent();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		assert.ok(document.querySelector('.cookie-consent')?.hasAttribute('hidden'));
+		assert.equal(typeof window.ym, 'function');
+	});
+
+	test('excludePathnamePrefixes без consent не показывает баннер и не загружает Metrika', () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 99938263,
+		});
+		Object.defineProperty(window.location, 'pathname', {
+			configurable: true,
+			value: '/manuscript/mad/1',
+		});
+
+		initCookieConsent();
+
+		assert.ok(document.querySelector('.cookie-consent')?.hasAttribute('hidden'));
+		assert.equal(globalThis.document.querySelectorAll('script[src*="mc.yandex.ru"]').length, 0);
+	});
 });

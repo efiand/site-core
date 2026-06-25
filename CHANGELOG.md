@@ -2,6 +2,19 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.4.2] - 2026-06-25
+
+### Added
+
+- [`cookieConsent.excludePathnamePrefixes`](types/cookie-consent.d.ts) — исключение cookie-баннера и «Настройки cookie» для префиксов URL (например `/manuscript` при dispatch с обрезанным `pathname`).
+- [`requestPathname`](types/metrika.d.ts) в guard и шаблонах — учёт канонического URL (`ogPathname`) вместе с `pathname` маршрута.
+- [`isExcludedCookieConsentPath`](common/lib/yandex-metrika-guard.js) — общая проверка для SSR и клиента; на excluded-путях Metrika всё ещё загружается при уже данном согласии.
+
+### Changed
+
+- [`common/templates/page.js`](common/templates/page.js) (`renderBody`): `renderCookieConsent({ pathname, requestPathname: ogPathname })`.
+- [`initCookieConsent`](client/lib/init-cookie-consent.js): early return на excluded-путях без UI баннера/настроек.
+
 ## [1.4.1] - 2026-06-25
 
 ### Fixed

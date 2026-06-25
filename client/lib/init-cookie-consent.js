@@ -9,6 +9,7 @@ import {
 	COOKIE_CONSENT_VALUE_REJECTED,
 } from '#core/common/lib/cookie-consent-constants.js';
 import { getSiteConfig } from '#core/common/lib/site-config.js';
+import { isExcludedCookieConsentPath } from '#core/common/lib/yandex-metrika-guard.js';
 
 /** @type {(banner: ParentNode) => void} */
 function bindCookieConsentBanner(banner) {
@@ -78,9 +79,19 @@ function initCookieConsent() {
 		return;
 	}
 
-	bindCookieConsentSettings();
-
 	const consent = readConsent();
+
+	if (isExcludedCookieConsentPath(window.location.pathname)) {
+		hideCookieConsentBanner();
+
+		if (consent === COOKIE_CONSENT_VALUE_ACCEPTED) {
+			initYandexMetrika({ delayMs: 0 });
+		}
+
+		return;
+	}
+
+	bindCookieConsentSettings();
 
 	if (consent === COOKIE_CONSENT_VALUE_ACCEPTED) {
 		hideCookieConsentBanner();

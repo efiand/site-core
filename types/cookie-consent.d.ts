@@ -1,6 +1,7 @@
 type CookieConsentSettingsControlOptions = {
 	className?: string;
 	pathname?: string;
+	requestPathname?: string;
 };
 
 type CookieConsentShowDelay = {
@@ -11,6 +12,7 @@ type CookieConsentShowDelay = {
 type CookieConsentConfig = {
 	cookieName?: string;
 	domain?: string;
+	excludePathnamePrefixes?: string[];
 	maxAgeSeconds?: number;
 	showDelayMs?: number;
 	showDelayMsByPathname?: Partial<Record<string, number>>;

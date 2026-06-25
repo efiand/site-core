@@ -33,6 +33,15 @@ describe('Общее/cookie-consent', () => {
 		assert.equal(renderCookieConsent({ pathname: '/__/404' }), '');
 	});
 
+	test('renderCookieConsent пропускает excludePathnamePrefixes по requestPathname', () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 102299682,
+		});
+
+		assert.equal(renderCookieConsent({ pathname: '/mad/1', requestPathname: '/manuscript/mad/1' }), '');
+	});
+
 	test('renderCookieConsent с showDelayMsByPathname добавляет data-атрибуты', () => {
 		setSiteConfig({
 			cookieConsent: {

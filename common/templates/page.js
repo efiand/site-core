@@ -167,7 +167,7 @@ function renderBody(layoutData, pathname, renderLayout) {
 	return /* html */ `
 		<body>
 			${renderLayout(layoutData)}
-			${renderCookieConsent({ pathname })}
+			${renderCookieConsent({ pathname, requestPathname: layoutData.ogPathname })}
 		</body>
 	`;
 }

@@ -10,4 +10,5 @@ type YandexMetrikaInitOptions = {
 type YandexMetrikaOptions = {
 	counterId?: number;
 	pathname?: string;
+	requestPathname?: string;
 };

@@ -24,4 +24,15 @@ describe('Общее/yandex-metrika-guard', () => {
 	test('shouldIncludeYandexMetrika true для публичных страниц', () => {
 		assert.equal(shouldIncludeYandexMetrika({ pathname: '/' }), true);
 	});
+
+	test('shouldIncludeYandexMetrika false при excludePathnamePrefixes по requestPathname', () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 102299682,
+		});
+
+		assert.equal(shouldIncludeYandexMetrika({ pathname: '/mad/1', requestPathname: '/manuscript/mad/1' }), false);
+		assert.equal(shouldIncludeYandexMetrika({ pathname: '/mad/1', requestPathname: '/mad/1' }), true);
+		assert.equal(shouldIncludeYandexMetrika({ pathname: '/manuscript/mad/1' }), false);
+	});
 });

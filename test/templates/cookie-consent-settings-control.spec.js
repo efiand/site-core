@@ -30,4 +30,20 @@ describe('Общее/cookie-consent-settings-control', () => {
 	test('renderCookieConsentSettingsControl пропускает служебные маршруты под /__', () => {
 		assert.equal(renderCookieConsentSettingsControl({ pathname: '/__/404' }), '');
 	});
+
+	test('renderCookieConsentSettingsControl пропускает excludePathnamePrefixes по requestPathname', () => {
+		setSiteConfig({
+			cookieConsent: { excludePathnamePrefixes: ['/manuscript'] },
+			yandexMetrikaId: 102299682,
+		});
+
+		assert.equal(
+			renderCookieConsentSettingsControl({
+				className: 'footer-link',
+				pathname: '/mad/1',
+				requestPathname: '/manuscript/mad/1',
+			}),
+			'',
+		);
+	});
 });

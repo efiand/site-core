@@ -4,9 +4,9 @@ import { getCookieConsentTexts } from '#core/common/lib/cookie-consent-texts.js'
 import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { shouldIncludeYandexMetrika } from '#core/common/lib/yandex-metrika-guard.js';
 
-/** @type {(options?: Pick<YandexMetrikaOptions, 'pathname'>) => string} */
-function renderCookieConsent({ pathname = '' } = {}) {
-	if (!shouldIncludeYandexMetrika({ pathname })) {
+/** @type {(options?: Pick<YandexMetrikaOptions, 'pathname' | 'requestPathname'>) => string} */
+function renderCookieConsent({ pathname = '', requestPathname = '' } = {}) {
+	if (!shouldIncludeYandexMetrika({ pathname, requestPathname })) {
 		return '';
 	}
 
