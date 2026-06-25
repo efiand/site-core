@@ -16,10 +16,10 @@ alwaysApply: true
 1. **Общие положения** — оператор (ФИО, email из `EMAIL`), назначение политики. Проектные дополнения (самозанятость, несколько изданий сайта) — только здесь, если применимо.
 2. **Какие данные** — нет форм на сайте (если форм нет); автоматический сбор через аналитику и server access log (IP, cookies, user-agent, URL, время).
 3. **Цели** — анализ посещаемости, улучшение сайта; проектные цели — отдельными пунктами списка.
-4. **Правовые основания** — 152-ФЗ; cookies/Metrika → цели из §3; server logs → работоспособность и безопасность.
+4. **Правовые основания** — 152-ФЗ; cookies/Metrika → **согласие субъекта через cookie-баннер**; server logs → работоспособность и безопасность.
 5. **Способы обработки** — сбор, запись/хранение (хостинг, Metrika), использование, удаление.
 6. **Сроки хранения** — server logs (ограниченное время, без фиксированного срока); Metrika → по политике Яндекса.
-7. **Cookies и Metrika** — Яндекс.Метрика; формулировки **совпадают с конфигом** [`initYandexMetrika`](client/lib/init-yandex-metrika.js) (дефолты в core): при `clickmap: true` и `webvisor: true` явно указать «карту кликов и запись сессий»; отключение cookies в браузере. SSR — только `<noscript>` через [`renderYandexMetrika`](common/templates/yandex-metrika.js); client init — `src/client/entries/main.js` (`configure-site` + `initYandexMetrika`) → `/bundles/main.js`.
+7. **Cookies и Metrika** — cookie-баннер (принять/отклонить, «Настройки cookie»); Яндекс.Метрика **только после согласия**; формулировки **совпадают с конфигом** [`initYandexMetrika`](client/lib/init-yandex-metrika.js) (дефолты в core): при `clickmap: true` и `webvisor: true` явно указать «карту кликов и запись сессий»; отключение cookies в браузере. SSR — [`renderCookieConsent`](common/templates/cookie-consent.js); client — `app/common/configure-site.js` (`setSiteConfig` + [`initSiteClient`](client/lib/init-site-client.js)) → `src/client/entries/main.js` импортирует только `configure-site` → `/bundles/main.js`.
 8. **Передача третьим лицам** — Metrika; иное — только по закону.
 9. **Права пользователя** — информация, уточнение/удаление, отзыв согласия; контакт `EMAIL`.
 10. **Заключительные** — ссылки на сторонние ресурсы (если есть внешние ссылки); право менять политику; URL `/privacy`.
@@ -81,13 +81,16 @@ alwaysApply: true
 
 ## Тесты
 
-`registerPrivacyRouteTests(privacyRoute, { hasEmail?, patterns? })` из [`test-helpers/privacy-route-tests.js`](test-helpers/privacy-route-tests.js) — базовый набор; хост передаёт project-specific `patterns` в `test/routes/privacy.spec.js`, без дублирования в integration.
+`registerPrivacyRouteTests(privacyRoute, { hasCookieConsent?, hasEmail?, patterns? })` из [`test-helpers/privacy-route-tests.js`](test-helpers/privacy-route-tests.js) — базовый набор; при cookie-баннере — `hasCookieConsent: true`; хост передаёт project-specific `patterns` в `test/routes/privacy.spec.js`, без дублирования в integration.
 
 ## Чеклист при новом проекте
 
 1. Скопировать структуру `privacy.js`, подставить оператора и проектные цели; задать `privacyRevisionDate` в `configure-site.js`.
-2. Сверить §7 с фактическим `ym(..., "init", { ... })`.
-3. Если есть mailto — §2–§6 по блоку «email», UI-согласие на соответствующих страницах.
-4. Если есть формы — §2–§6 по блоку «формы», UI-согласие у форм.
-5. Если есть внешние ссылки — §10; если нет — абзац можно опустить.
-6. Добавить `test/routes/privacy.spec.js` с `registerPrivacyRouteTests` и project-specific `patterns`, прогнать `npm run lint` и тесты.
+2. Сверить §7 с фактическим `ym(..., "init", { ... })` и cookie-баннером.
+3. Подключить `@import url("blocks/cookie-consent.css")` в `main.css`; symlink создаёт `site-core-postinstall`.
+4. Разметить кнопку «Настройки cookie» с `data-cookie-consent-settings` (или [`renderCookieConsentSettingsControl`](common/templates/cookie-consent-settings-control.js)) в футере/другом месте; `hidden` по умолчанию — client покажет после выбора.
+5. В `configure-site.js` после `setSiteConfig` — `initSiteClient()`.
+6. Если есть mailto — §2–§6 по блоку «email», UI-согласие на соответствующих страницах.
+7. Если есть формы — §2–§6 по блоку «формы», UI-согласие у форм.
+8. Если есть внешние ссылки — §10; если нет — абзац можно опустить.
+9. Добавить `test/routes/privacy.spec.js` с `registerPrivacyRouteTests` (`hasCookieConsent: true`) и project-specific `patterns`, прогнать `npm run lint` и тесты.

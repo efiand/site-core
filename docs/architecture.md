@@ -15,15 +15,16 @@ flowchart TB
     renderPage[createRenderPage]
     httpServer[createHttpServer]
     clientEntry[renderClientEntryScript]
-    metrika[renderYandexMetrika + initYandexMetrika]
+    cookieConsent[renderCookieConsent + initSiteClient]
   end
   configureSite --> siteConfig
+  configureSite --> cookieConsent
   appJs --> httpServer
   httpServer --> renderPage
   renderPage --> renderLayout
   renderPage --> clientEntry
-  renderPage --> metrika
-  clientMain --> metrika
+  renderPage --> cookieConsent
+  clientMain --> configureSite
 ```
 
 ## Слои пакета
@@ -44,7 +45,7 @@ flowchart TB
 
 Хост передаёт только **`renderLayout`** — разметка **внутри** `<body>` (`.layout`, nav, контент). Core добавляет:
 
-- [`renderYandexMetrika`](../common/templates/yandex-metrika.js) — `<noscript>` для Metrika
+- [`renderCookieConsent`](../common/templates/cookie-consent.js) — cookie-баннер
 - ассеты через [`renderPageAssets`](../common/templates/page-assets.js) или кастомный `renderPageAssetsFn` (например inline-бандл)
 
 Инициализация в `app/server/lib/app.js`:
@@ -62,13 +63,13 @@ export const renderPage = createRenderPage({ renderLayout });
 | dev | importmap + `/client/entries/main.js` | PostCSS dev middleware |
 | prod | [`renderClientEntryScript`](../common/templates/client-entry-script.js) → `/bundles/main.js` | `<link href="/bundles/main.css">` |
 
-`src/client/entries/main.js` хоста: side-effect `configure-site` + `initYandexMetrika()` и прочий client-код.
+`src/client/entries/main.js` хоста: `import '#common/configure-site.js'` (внутри — `setSiteConfig` + [`initSiteClient`](../client/lib/init-site-client.js)).
 
-## Yandex Metrika
+## Yandex Metrika и cookie-баннер
 
-Подробная таблица модулей — в [README § Yandex Metrika](../README.md#yandex-metrika).
+Подробная таблица модулей — в [README § Yandex Metrika и cookie-баннер](../README.md#yandex-metrika-и-cookie-баннер).
 
-Кратко: SSR — только `<noscript>`; client init — `initYandexMetrika` в `main.js`; `yandexMetrikaId` в dev обнуляется в `setSiteConfig`.
+Кратко: SSR — [`renderCookieConsent`](../common/templates/cookie-consent.js); Metrika — только client-side после согласия; `initSiteClient()` в `configure-site.js`; `yandexMetrikaId` в dev обнуляется в `setSiteConfig`.
 
 ## HTTP и роутинг
 

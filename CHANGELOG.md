@@ -2,6 +2,29 @@
 
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
+## [1.4.0] - 2026-06-25
+
+### Added
+
+- Cookie-баннер и gated Yandex Metrika: [`renderCookieConsent`](common/templates/cookie-consent.js), [`renderCookieConsentSettingsControl`](common/templates/cookie-consent-settings-control.js), [`initCookieConsent`](client/lib/init-cookie-consent.js), [`initSiteClient`](client/lib/init-site-client.js), [`cookie-consent-storage.js`](client/lib/cookie-consent-storage.js), [`client/css/blocks/cookie-consent.css`](client/css/blocks/cookie-consent.css).
+- [`common/lib/cookie-consent-constants.js`](common/lib/cookie-consent-constants.js), [`cookie-consent-texts.js`](common/lib/cookie-consent-texts.js) (`getCookieConsentTexts`), [`cookie-consent-storage-config.js`](common/lib/cookie-consent-storage-config.js) (`getCookieConsentStorageConfig`).
+- [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js): `cookieConsent` — имя cookie, `domain`, `maxAgeSeconds`, `showDelayMs` / `showDelayMsByPathname` / `showDelayMsReducedMotionByPathname`, тексты баннера (`types/cookie-consent.d.ts`); [`resolveCookieConsentShowDelay`](common/lib/cookie-consent-show-delay.js).
+- Отложенный показ баннера: inline-скрипт в [`renderCookieConsent`](common/templates/cookie-consent.js) (`data-cookie-consent-show-delay`, учёт `prefers-reduced-motion`); [`types/global.d.ts`](types/global.d.ts) — `window.__siteCoreCookieConsentRevealTimeout`.
+- [`tools/link-dev-config.js`](tools/link-dev-config.js) (`linkHostCoreCss`); [`tools/postinstall.js`](tools/postinstall.js) — symlink `cookie-consent.css` на хосте.
+- `registerPrivacyRouteTests`: опция `hasCookieConsent`.
+
+### Changed
+
+- [`common/templates/page.js`](common/templates/page.js) (`renderBody`): `renderCookieConsent` вместо SSR Metrika.
+- Preview (`site-core-dev --preview`): [`tools/dev.js`](tools/dev.js) выставляет `PREVIEW=true` и снимает `DEV`; [`setSiteConfig`](common/lib/site-config.js) — `isDev` false при `PREVIEW` (даже если `DEV` в окружении), порт из `PORT`, `yandexMetrikaId` не обнуляется — баннер и gated Metrika как в prod.
+- [README.md](README.md), [docs/architecture.md](docs/architecture.md) — cookie-баннер и gated Metrika.
+- [`config/configure-site.host.example.js`](config/configure-site.host.example.js) — `initSiteClient()`; [`config/gitignore.host.example`](config/gitignore.host.example) — gitignore symlink `cookie-consent.css`.
+- Хост: `initSiteClient()` в `configure-site.js` после `setSiteConfig`; `main.js` — только `import '#common/configure-site.js'`; `@import` `blocks/cookie-consent.css` в `main.css`; кнопка «Настройки cookie» — SSR с `data-cookie-consent-settings` (или [`renderCookieConsentSettingsControl`](common/templates/cookie-consent-settings-control.js)); обновить §4/§7 политики (`hasCookieConsent: true` в тестах).
+
+### Removed
+
+- [`common/templates/yandex-metrika.js`](common/templates/yandex-metrika.js) (`renderYandexMetrika`) — SSR noscript Metrika; аналитика только client-side после согласия.
+
 ## [1.3.0] - 2026-06-24
 
 ### Added

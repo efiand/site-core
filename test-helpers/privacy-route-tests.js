@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { createRouteParams } from '#core/test-helpers/route-params.js';
 
 /** @type {(page: LayoutData | undefined, options?: PrivacyRouteTestsOptions) => void} */
-function assertPrivacyPolicyPage(page, { email, hasEmail = false, patterns = [] } = {}) {
+function assertPrivacyPolicyPage(page, { email, hasCookieConsent = false, hasEmail = false, patterns = [] } = {}) {
 	const heading = page?.heading ?? '';
 	const markup = `${heading}${page?.pageTemplate ?? ''}`.replaceAll('\u00a0', ' ');
 	const expectedEmail = email;
@@ -25,6 +25,12 @@ function assertPrivacyPolicyPage(page, { email, hasEmail = false, patterns = [] 
 	if (hasEmail) {
 		assert.match(markup, /mailto:/);
 		assert.match(markup, /не\s+содержит форм/);
+	}
+
+	if (hasCookieConsent) {
+		assert.match(markup, /cookie-баннер|cookie баннер/i);
+		assert.match(markup, /согласи[ея].*cookie|cookie.*согласи/i);
+		assert.match(markup, /только после|после согласия|после принятия/i);
 	}
 
 	for (const pattern of patterns) {

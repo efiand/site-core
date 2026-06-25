@@ -1,4 +1,5 @@
 /// <reference path="./client.d.ts" />
+/// <reference path="./cookie-consent.d.ts" />
 /// <reference path="./datetime.d.ts" />
 /// <reference path="./global.d.ts" />
 /// <reference path="./hyphen.d.ts" />

@@ -17,6 +17,10 @@ const DEFAULT_LINKS = [
 	{ link: '.vscode/extensions.json', target: '.vscode/extensions.json' },
 ];
 
+const HOST_CORE_CSS_LINKS = [
+	{ link: 'src/client/css/blocks/cookie-consent.css', target: 'client/css/blocks/cookie-consent.css' },
+];
+
 const HOST_BIOME_BIN_PREFIX = './node_modules/site-core/node_modules/@biomejs/';
 const HOST_WORKFLOW_SCHEMA = './node_modules/site-core/config/github-workflow.schema.json';
 
@@ -94,6 +98,19 @@ function linkDevConfig(hostRoot = process.cwd(), links = DEFAULT_LINKS) {
 	writeHostVscodeSettings(hostRoot, coreRoot);
 }
 
+/** @type {(hostRoot?: string) => void} */
+function linkHostCoreCss(hostRoot = process.cwd()) {
+	const coreRoot = path.join(hostRoot, 'node_modules', 'site-core');
+
+	if (!fs.existsSync(coreRoot)) {
+		return;
+	}
+
+	for (const { link, target } of HOST_CORE_CSS_LINKS) {
+		ensureLink(hostRoot, path.join(hostRoot, link), path.join(coreRoot, target));
+	}
+}
+
 /** @type {(hostRoot: string, coreRoot: string) => void} */
 function writeHostVscodeSettings(hostRoot, coreRoot) {
 	const sourcePath = path.join(coreRoot, '.vscode/settings.json');
@@ -121,4 +138,4 @@ function writeHostVscodeSettings(hostRoot, coreRoot) {
 	console.info(`Wrote ${path.relative(hostRoot, destPath)}`);
 }
 
-export { DEFAULT_LINKS, linkDevConfig };
+export { DEFAULT_LINKS, HOST_CORE_CSS_LINKS, linkDevConfig, linkHostCoreCss };

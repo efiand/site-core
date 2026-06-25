@@ -88,7 +88,7 @@ Subpath-импорты (`site-core/tools/…`, `#core/common/templates/…`) —
 | Константы   | `export declare const NAME: Type;` (не `export const` — Biome parse) |
 | Global-типы | `/// <reference path="…/types/index.d.ts" />` при необходимости      |
 
-Примеры: [`tools/build-static-pages.d.ts`](tools/build-static-pages.d.ts), [`common/templates/yandex-metrika.d.ts`](common/templates/yandex-metrika.d.ts), [`common/templates/mailto-privacy.d.ts`](common/templates/mailto-privacy.d.ts).
+Примеры: [`tools/build-static-pages.d.ts`](tools/build-static-pages.d.ts), [`common/templates/cookie-consent.d.ts`](common/templates/cookie-consent.d.ts), [`common/templates/mailto-privacy.d.ts`](common/templates/mailto-privacy.d.ts).
 
 ## Biome
 
@@ -106,7 +106,8 @@ Subpath-импорты (`site-core/tools/…`, `#core/common/templates/…`) —
 
 1. Symlink `.cursor/rules/site-core`, `.editorconfig`, `.vscode/extensions.json` → `node_modules/site-core/`; `.vscode/settings.json` — копия core с путями `biome.lsp.bin` для хоста.
 2. Сканирует `public/fonts/*.woff2`, переименовывает в `{family-slug}-{weight}[-italic].woff2`, пишет gitignored `src/client/css/common/fonts.css` (хост) и `common/generated/fonts.js` (site-core; preload через import в [`page.js`](common/templates/page.js)).
-3. Git pre-commit hook для **хоста** — [`tools/install-pre-commit.js`](tools/install-pre-commit.js); при `file:../site-core` штатный `install.js` `@fastify/pre-commit` ставит hook не в тот `.git`.
+3. Symlink `src/client/css/blocks/cookie-consent.css` → `client/css/blocks/` в core (gitignore на хосте).
+4. Git pre-commit hook для **хоста** — [`tools/install-pre-commit.js`](tools/install-pre-commit.js); при `file:../site-core` штатный `install.js` `@fastify/pre-commit` ставит hook не в тот `.git`.
 
 Перегенерация шрифтов: `npm run postinstall` (или `npm run build` — postinstall первым).
 
@@ -151,17 +152,19 @@ Workflow-файлы — в [`site-core/.github/workflows/`](.github/workflows/).
 
 `buildAssetQuery(hostVersion)` из `#core/common/lib/asset-version.js` → `?v=N&core=X.Y.Z`.
 
-## Yandex Metrika
+## Yandex Metrika и cookie-баннер
 
 | Слой   | Модуль                                                                                      | Назначение                                                                                                                                       |
 | ------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SSR    | [`renderYandexMetrika`](common/templates/yandex-metrika.js)                                 | только `<noscript>` + комментарии; guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js)                                    |
+| SSR    | [`renderCookieConsent`](common/templates/cookie-consent.js)                                | cookie-баннер; guard — [`shouldIncludeYandexMetrika`](common/lib/yandex-metrika-guard.js)                                                        |
+| SSR    | [`renderCookieConsentSettingsControl`](common/templates/cookie-consent-settings-control.js) | опционально: кнопка «Настройки cookie» с `data-cookie-consent-settings` (хост может разметить сам) |
 | SSR    | [`renderClientEntryScript`](common/templates/client-entry-script.js)                        | prod `<script type="module" src="…/main.js">`; dev — `/client/entries/main.js`; без `/__*`            |
-| Client | [`initYandexMetrika`](client/lib/init-yandex-metrika.js)                                    | загрузка tag.js, `ym(…, "init")`, очередь hits                                                                                                   |
+| Client | [`initSiteClient`](client/lib/init-site-client.js) → [`initCookieConsent`](client/lib/init-cookie-consent.js) | баннер, first-party cookie согласия, gated [`initYandexMetrika`](client/lib/init-yandex-metrika.js) (`delayMs: 0` после согласия); bind `[data-cookie-consent-settings]` |
 | Client | [`loadScript`](client/lib/load-script.js)                                                   | однократная загрузка внешнего `<script>` по URL                                                                                                  |
-| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | `yandexMetrikaId` обнуляется в dev; init — `app/common/configure-site.js`                                                                       |
+| CSS    | [`cookie-consent.css`](client/css/blocks/cookie-consent.css)                                | symlink в хост `src/client/css/blocks/` через postinstall; `@import` в `main.css`                                                                 |
+| Config | [`getSiteConfig`](common/lib/site-config.js) / [`setSiteConfig`](common/lib/site-config.js) | `yandexMetrikaId` обнуляется в dev; `initSiteClient()` в `configure-site.js` после `setSiteConfig`                                               |
 
-На `/__*` — без Metrika (noscript) и без client entry. Inline `<script>` с init в SSR **не используем**.
+На `/__*` — без баннера и без client entry. SSR noscript Metrika **не используем**.
 
 ## `buildStaticPages`
 

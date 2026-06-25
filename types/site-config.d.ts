@@ -8,6 +8,7 @@ type SiteConfigState = {
 	baseHost: string;
 	baseUrl: string;
 	buildPages: Set<string>;
+	cookieConsent: CookieConsentConfig;
 	email: string;
 	hasDb: boolean;
 	host: string;

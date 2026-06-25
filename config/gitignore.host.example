@@ -17,5 +17,6 @@ logs
 node_modules
 public/**/*.html
 public/*.xml
+src/client/css/blocks/cookie-consent.css
 src/client/css/common/fonts.css
 tmp

@@ -89,6 +89,14 @@ describe('Общее/site-config/Страницы', () => {
 		assert.equal(getSiteConfig().isDev, true);
 	});
 
+	test('isDev false в preview, даже если задан DEV', () => {
+		process.env.DEV = '1';
+		process.env.PREVIEW = '1';
+		setSiteConfig({});
+
+		assert.equal(getSiteConfig().isDev, false);
+	});
+
 	test('yandexMetrikaId обнуляется в dev', () => {
 		delete process.env.DEV;
 		setSiteConfig({ yandexMetrikaId: 102299682 });
@@ -97,6 +105,13 @@ describe('Общее/site-config/Страницы', () => {
 		process.env.DEV = '1';
 		setSiteConfig({ yandexMetrikaId: 102299682 });
 		assert.equal(getSiteConfig().yandexMetrikaId, 0);
+	});
+
+	test('yandexMetrikaId сохраняется в preview', () => {
+		process.env.PREVIEW = '1';
+		setSiteConfig({ yandexMetrikaId: 102299682 });
+
+		assert.equal(getSiteConfig().yandexMetrikaId, 102299682);
 	});
 
 	test('hasDb по умолчанию false', () => {

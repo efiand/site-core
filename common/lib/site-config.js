@@ -8,6 +8,7 @@ const state = {
 	baseHost: '',
 	baseUrl: '',
 	buildPages: new Set(),
+	cookieConsent: {},
 	email: '',
 	hasDb: false,
 	host: '',
@@ -86,12 +87,12 @@ function setSiteConfig(patch) {
 	}
 
 	if (typeof process !== 'undefined') {
-		state.isDev = Boolean(process.env.DEV);
+		const isPreview = Boolean(process.env.PREVIEW);
+		state.isDev = Boolean(process.env.DEV) && !isPreview;
 
 		const devPort = Number(process.env.DEV_PORT);
 		const port = Number(process.env.PORT);
-		const isPreview = Boolean(process.env.PREVIEW);
-		state.port = state.isDev && devPort && !isPreview ? devPort : port || 0;
+		state.port = state.isDev && devPort ? devPort : port || 0;
 		state.host = state.port ? `http://localhost:${state.port}` : '';
 	} else {
 		state.isDev = Boolean(window.DEV);

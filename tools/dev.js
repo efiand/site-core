@@ -13,14 +13,18 @@ const hostCwd = process.cwd();
 /** @type {(name: string, args: string[]) => import('node:child_process').SpawnSyncReturns<Buffer | null>} */
 function spawnCli(name, args) {
 	const { command, args: spawnArgs } = resolveBinSpawn(name, args, hostCwd);
+	const env = {
+		...process.env,
+		...(isPreview ? { PREVIEW: 'true' } : { DEV: 'true' }),
+	};
+
+	if (isPreview) {
+		delete env.DEV;
+	}
 
 	return spawnSync(command, spawnArgs, {
 		cwd: hostCwd,
-		env: {
-			...process.env,
-			DEV: 'true',
-			...(isPreview ? { PREVIEW: 'true' } : {}),
-		},
+		env,
 		stdio: 'inherit',
 	});
 }

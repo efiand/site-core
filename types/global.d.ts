@@ -13,6 +13,9 @@ interface Window {
 		a?: unknown[][];
 		l?: number;
 	};
+
+	/** Отложенный показ cookie-баннера (inline-скрипт и client) */
+	__siteCoreCookieConsentRevealTimeout?: number;
 }
 
 namespace NodeJS {

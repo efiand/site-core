@@ -1,5 +1,6 @@
 type PrivacyRouteTestsOptions = {
 	email?: string;
+	hasCookieConsent?: boolean;
 	hasEmail?: boolean;
 	patterns?: RegExp[];
 };

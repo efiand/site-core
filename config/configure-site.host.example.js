@@ -1,3 +1,4 @@
+import { initSiteClient } from 'site-core/client/lib/init-site-client.js';
 import { setSiteConfig } from 'site-core/common/lib/site-config.js';
 
 setSiteConfig({
@@ -12,7 +13,12 @@ setSiteConfig({
 	yandexMetrikaId: 12345678, // prod-id; в dev setSiteConfig обнуляет
 });
 
-// privacyRevisionDate: '2026-06-09', // SiteDatetimeInput — тот же формат, что date в renderTimeTag
+initSiteClient();
+
+// cookieConsent: {
+// 	showDelayMsByPathname: { '/': 5200 },
+// 	showDelayMsReducedMotionByPathname: { '/': 2000 },
+// },
 
 // app/server/lib/app.js — после import { routes } from '#server/routes/index.js':
 // setSiteConfig({ routes });

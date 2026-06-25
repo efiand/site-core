@@ -10,11 +10,11 @@ import {
 } from '#core/common/lib/html-prefix.js';
 import { getSiteConfig } from '#core/common/lib/site-config.js';
 import { renderArticleHead } from '#core/common/templates/article-work-schema.js';
+import { renderCookieConsent } from '#core/common/templates/cookie-consent.js';
 import { renderDocumentTitle } from '#core/common/templates/document-title.js';
 import { renderFaviconLinks } from '#core/common/templates/favicon-links.js';
 import { renderFontPreloads } from '#core/common/templates/font-preloads.js';
 import { renderPageAssets } from '#core/common/templates/page-assets.js';
-import { renderYandexMetrika } from '#core/common/templates/yandex-metrika.js';
 
 /** @type {(options: CreateRenderPageOptions) => (data: LayoutData) => Promise<string>} */
 function createRenderPage({
@@ -166,8 +166,8 @@ function renderAuthorMeta(author, baseUrl, ogType, publishedTime) {
 function renderBody(layoutData, pathname, renderLayout) {
 	return /* html */ `
 		<body>
-			${renderYandexMetrika({ pathname })}
 			${renderLayout(layoutData)}
+			${renderCookieConsent({ pathname })}
 		</body>
 	`;
 }

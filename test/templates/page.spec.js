@@ -19,7 +19,7 @@ describe('Общее/Страница', () => {
 		setSiteConfig({ author: '', pubDate: '', yandexMetrikaId: 0 });
 	});
 
-	test('createRenderPage оборачивает renderLayout в body с метрикой', async () => {
+	test('createRenderPage оборачивает renderLayout в body с cookie-баннером', async () => {
 		const renderPage = createRenderPage({
 			renderLayout: ({ pageTemplate }) => /* html */ `<main>${pageTemplate}</main>`,
 		});
@@ -27,9 +27,10 @@ describe('Общее/Страница', () => {
 		const html = await renderPage({ pageTemplate: 'content', pathname: '/' });
 
 		assert.match(html, /<body>/);
-		assert.match(html, /Yandex\.Metrika/);
+		assert.match(html, /class="cookie-consent"/);
 		assert.match(html, /<main>content<\/main>/);
 		assert.doesNotMatch(html, /<body>[\s\S]*<body>/);
+		assert.doesNotMatch(html, /Yandex\.Metrika/);
 	});
 
 	test('createRenderPage по умолчанию подключает сгенерированные шрифты', async () => {
@@ -141,7 +142,7 @@ describe('Общее/Страница', () => {
 		assert.doesNotMatch(html, /rel="canonical"/);
 	});
 
-	test('createRenderPage пропускает metrika и client entry на служебных страницах', async () => {
+	test('createRenderPage пропускает cookie-баннер и client entry на служебных страницах', async () => {
 		const renderPage = createRenderPage({
 			renderLayout: () => '',
 		});
@@ -152,7 +153,7 @@ describe('Общее/Страница', () => {
 			pathname: '/__/404',
 		});
 
-		assert.doesNotMatch(html, /Yandex\.Metrika/);
+		assert.doesNotMatch(html, /class="cookie-consent"/);
 		assert.doesNotMatch(html, /\/bundles\/main\.js/);
 	});
 
